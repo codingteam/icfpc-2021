@@ -31,3 +31,5 @@ If everything's fine, add your name to the list below (so we know you got it
 working, and that you can push to this repo):
 
 - Minoru
+- Akon32
+
