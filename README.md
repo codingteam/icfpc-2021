@@ -26,3 +26,8 @@ The output should look like this:
 Hello, world!
 [success] Total time: 0 s, completed 3 Jul 2021, 20:07:35
 ```
+
+If everything's fine, add your name to the list below (so we know you got it
+working, and that you can push to this repo):
+
+- Minoru
