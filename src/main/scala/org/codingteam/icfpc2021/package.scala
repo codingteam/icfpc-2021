@@ -53,5 +53,8 @@ package object icfpc2021 {
    */
   case class Rect(min: Point, max: Point) {
     lazy val size: Point = max - min + Point.Ones
+
+    def contains(p: Point): Boolean =
+      p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y
   }
 }
