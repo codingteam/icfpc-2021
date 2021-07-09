@@ -12,6 +12,9 @@ object Main extends App {
     case _ => println(
       """Possible arguments:
         |
+        |validator <problem.json> <solution.json>
+        |  Checks whether or not a given solution solves the given problem.
+        |
         |visualizer <path.json>
         |  Will show visualizer for <path>.""".stripMargin)
   }
