@@ -14,6 +14,6 @@ package object icfpc2021 {
 
   case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure)
 
-  case class Solution(problem: Problem, solution: Figure)
+  case class Solution(vertices: Vector[Point])
 
 }
