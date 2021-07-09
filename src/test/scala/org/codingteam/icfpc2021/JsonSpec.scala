@@ -10,7 +10,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
     val document = """{"hole":[], "epsilon": 0, "figure": {"edges":[], "vertices":[]}}"""
 
     val hole = Vector[Point]()
-    val figure = Figure(Vector[VertexPair](), Vector[Point]())
+    val figure = Figure(Vector[Edge](), Vector[Point]())
     val expectedValue = Problem(hole, 0, figure)
 
     Json.parseProblem(document) should be (expectedValue)
@@ -22,7 +22,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
     val document = """{"hole":[[-18446744073709551616, 18446744073709551616]], "epsilon": 0, "figure": {"edges":[], "vertices":[]}}"""
 
     val hole = Vector[Point](Point(-two_to_64, two_to_64))
-    val figure = Figure(Vector[VertexPair](), Vector[Point]())
+    val figure = Figure(Vector[Edge](), Vector[Point]())
     val expectedValue = Problem(hole, 0, figure)
 
     Json.parseProblem(document) should be (expectedValue)
@@ -34,7 +34,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
     val document = """{"hole":[], "epsilon": 18446744073709551616, "figure": {"edges":[], "vertices":[]}}"""
 
     val hole = Vector[Point]()
-    val figure = Figure(Vector[VertexPair](), Vector[Point]())
+    val figure = Figure(Vector[Edge](), Vector[Point]())
     val expectedValue = Problem(hole, two_to_64, figure)
 
     Json.parseProblem(document) should be (expectedValue)

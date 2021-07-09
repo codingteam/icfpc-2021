@@ -18,12 +18,12 @@ object Json {
       throw new JsonParseException(p, "Invalid end for Point")
     Point(x, y)
   })
-  icfpc2021JsonModule.addDeserializer(classOf[VertexPair], (p: JsonParser, _: DeserializationContext) => {
+  icfpc2021JsonModule.addDeserializer(classOf[Edge], (p: JsonParser, _: DeserializationContext) => {
     val x = p.nextIntValue(0)
     val y = p.nextIntValue(0)
     if (p.nextToken() != JsonToken.END_ARRAY)
       throw new JsonParseException(p, "Invalid end for Point")
-    VertexPair(x, y)
+    Edge(x, y)
   })
 
   private val mapper = new ObjectMapper()
