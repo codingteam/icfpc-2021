@@ -4,7 +4,7 @@ import org.codingteam.icfpc2021.{Json, Point, Problem}
 
 import java.awt._
 import java.nio.file.{Files, Path}
-import javax.swing.JPanel
+import javax.swing.{JPanel, WindowConstants}
 import scala.swing.{Component, Frame}
 
 object Visualizer {
@@ -41,6 +41,8 @@ object Visualizer {
       title = "visualizer"
 
       contents = Component.wrap(panel)
+
+      peer.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
       pack()
       centerOnScreen()
