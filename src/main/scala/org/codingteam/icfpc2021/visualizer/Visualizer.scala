@@ -23,7 +23,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       override def paint(g: Graphics): Unit = {
         val g2 = g.asInstanceOf[Graphics2D]
         translator.setScreenDimensions(getWidth, getHeight)
-
+        g2.clearRect(0, 0, getWidth, getHeight)
         g2.draw(translator.holeScreenPolygon())
 
         g2.setColor(Color.GRAY)
@@ -50,6 +50,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         }
       }
     }
+    p.setDoubleBuffered(true)
     p.setPreferredSize(new Dimension(600, 400))
     p.addMouseListener(new MouseListener() {
       override def mouseClicked(me: MouseEvent): Unit = {
