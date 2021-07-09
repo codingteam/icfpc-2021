@@ -21,9 +21,14 @@ class Translator(problem: Problem) {
   }
 
   def toScreen(p: Point): (Int, Int) = (toScreenX(p.x), toScreenY(p.y))
+  def scaleToScreen() : BigInt = {
+    val scaleX = (width - screenBorder * 2 ) / (maxX - minX)
+    val scaleY = (height - screenBorder * 2 )  / (maxY - minY)
+    scaleX.min(scaleY)
+  }
   // TODO: preserve aspect ratio
-  def toScreenX(x: BigInt): Int = ((x - minX) * (width - screenBorder * 2 ) / (maxX - minX) + screenBorder).toInt
-  def toScreenY(y: BigInt): Int = ((y - minY) * (height - screenBorder * 2 )  / (maxY - minY) + screenBorder).toInt
+  def toScreenX(x: BigInt): Int = ((x - minX) * scaleToScreen() + screenBorder).toInt
+  def toScreenY(y: BigInt): Int = ((y - minY) * scaleToScreen() + screenBorder).toInt
 
   def toModel(x: Int, y: Int): Point = ???
 
