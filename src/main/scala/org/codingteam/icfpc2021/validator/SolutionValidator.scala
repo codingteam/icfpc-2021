@@ -52,6 +52,25 @@ class SolutionValidator(problem: Problem) {
   }
 
   def validate(solution: Solution): Boolean = {
+    require(solution.vertices.size == problem.figure.vertices.size, "Wrong vertices array size")
+    validateEdgeLength(solution) && validateHole(solution)
+  }
+
+  def validateEdgeLength(solution: Solution): Boolean = {
+    val K = BigInt(1000000)
+    problem.figure.edges forall { e =>
+      val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
+      val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
+      // d' in solution, d in problem.
+      // abs(d' / d - 1) <= eps / 1000000
+      // abs((d' - d) / d) <= eps / 1000000
+      // abs((d' - d) ) * 1000000 <= d * eps
+      val correctLength = (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
+      correctLength
+    }
+  }
+
+  def validateHole(solution: Solution): Boolean = {
     val g2 = figureImage.getGraphics.asInstanceOf[Graphics2D]
     g2.setColor(ClearColor)
     g2.fillRect(0, 0, imgSizeX, imgSizeY)
