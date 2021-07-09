@@ -38,6 +38,7 @@ class SolutionValidator(problem: Problem) {
     g2.fillRect(0, 0, imgSizeX, imgSizeY)
     val (holeXs, holeYs, holeLength) = splitPointsIntoCoords(problem.hole map pointToImageCoord)
     g2.setColor(FillColor)
+    g2.drawPolygon(holeXs, holeYs, holeLength)
     g2.fillPolygon(holeXs, holeYs, holeLength)
     val holeImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
     holeImage.getRGB(0, 0, imgSizeX, imgSizeY, holeImageArray, 0, imgSizeX)
