@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2021
 
-case class Point(x: Int, y: Int) {
+case class Point(x: BigInt, y: BigInt) {
   override def toString: String = s"($x, $y)"
 }
 
@@ -9,4 +9,4 @@ case class VertexPair(vertex1: Int, vertex2: Int) {
 }
 
 case class Figure(edges: Vector[VertexPair], vertices: Vector[Point])
-case class Problem(hole: Vector[Point], epsilon: Int, figure: Figure)
+case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure)

@@ -14,7 +14,26 @@ object Visualizer {
 
     val hole = problem.hole
     val figure = problem.figure
-    val holePoly = new Polygon(hole.map(_.x).toArray, hole.map(_.y).toArray, hole.size)
+
+    val offset_x = (hole.map(_.x).min).min(figure.vertices.map(_.x).min)
+    val offset_y = (hole.map(_.y).min).min(figure.vertices.map(_.y).min)
+
+    val max_x  = (hole.map(_.x - offset_x).max).max(figure.vertices.map(_.x - offset_x).max)
+    val max_y  = (hole.map(_.y - offset_y).max).max(figure.vertices.map(_.y - offset_y).max)
+    val max_coord = max_x.max(max_y)
+    val scale: Int =
+      if (max_coord < Int.MaxValue) {
+        1
+      } else {
+        (max_coord / Int.MaxValue).toInt
+      }
+
+    val scaled_vertices = figure.vertices.map(p => ( (p.x / scale).toInt, (p.y / scale).toInt ))
+
+    val holePoly = new Polygon(
+      hole.map(p => (p.x / scale).toInt).toArray,
+      hole.map(p => (p.y / scale).toInt).toArray,
+      hole.size)
 
     new Frame {
       title = "visualizer"
@@ -26,9 +45,9 @@ object Visualizer {
 
           g2.setColor(Color.RED)
           for (edge <- figure.edges) {
-            val e1 = figure.vertices(edge.vertex1)
-            val e2 = figure.vertices(edge.vertex2)
-            g.drawLine(e1.x, e1.y, e2.x, e2.y)
+            val e1 = scaled_vertices(edge.vertex1)
+            val e2 = scaled_vertices(edge.vertex2)
+            g.drawLine(e1._1, e1._2, e2._1, e2._2)
           }
         }
       })
