@@ -21,6 +21,12 @@ object Visualizer {
 
           g2.draw(translator.holeScreenPolygon())
 
+          g2.setColor(Color.GRAY)
+          for ((vert, i) <- problem.hole.zipWithIndex) {
+            val (x, y) = translator.toScreen(vert)
+            g.drawString(String.valueOf(i), x, y)
+          }
+
           g2.setColor(Color.RED)
           for (edge <- problem.figure.edges) {
             val (x1, y1) = translator.toScreen(problem.figure.vertices(edge.vertex1))
