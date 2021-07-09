@@ -3,6 +3,7 @@ package org.codingteam.icfpc2021.visualizer
 import org.codingteam.icfpc2021.{Json, Point, Problem}
 
 import java.awt._
+import java.awt.event.{MouseEvent, MouseListener}
 import java.nio.file.{Files, Path}
 import javax.swing.{JPanel, WindowConstants}
 import scala.swing.{Component, Frame}
@@ -42,6 +43,15 @@ object Visualizer {
         }
       }
     panel.setPreferredSize(new Dimension(600, 400))
+    panel.addMouseListener(new MouseListener() {
+      override def mouseClicked(me: MouseEvent): Unit = {
+        println(translator.toModel(me.getX, me.getY))
+      }
+      override def mouseEntered(e: MouseEvent): Unit = {}
+      override def mouseExited(e: MouseEvent): Unit = {}
+      override def mousePressed(e: MouseEvent): Unit = {}
+      override def mouseReleased(e: MouseEvent): Unit = {}
+    })
 
     new Frame {
       title = "visualizer"
