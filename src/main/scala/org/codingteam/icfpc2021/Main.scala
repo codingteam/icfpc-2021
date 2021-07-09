@@ -1,12 +1,14 @@
 package org.codingteam.icfpc2021
 
+import java.nio.file.Path
+
 object Main extends App {
   args match {
-    case Array("visualizer") => Visualizer.show()
+    case Array("visualizer", path) => Visualizer.show(Path.of(path))
     case _ => println(
       """Possible arguments:
         |
-        |visualizer
-        |  Will show visualizer.""".stripMargin)
+        |visualizer <path.json>
+        |  Will show visualizer for <path>.""".stripMargin)
   }
 }
