@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2021.validator
 
-import org.codingteam.icfpc2021.{Point, Problem, Solution,Json}
+import org.codingteam.icfpc2021.{Json, Point, Problem, Solution}
 
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -71,6 +71,8 @@ class SolutionValidator(problem: Problem) {
     }
   }
 
+  private def pointIsOutsideImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
+
   def validateHole(solution: Solution): Boolean = {
     val g2 = figureImage.getGraphics.asInstanceOf[Graphics2D]
     g2.setColor(ClearColor)
@@ -79,6 +81,8 @@ class SolutionValidator(problem: Problem) {
     for (e <- problem.figure.edges) {
       val v1 = pointToImageCoord(solution.vertices(e.vertex1))
       val v2 = pointToImageCoord(solution.vertices(e.vertex2))
+      if (pointIsOutsideImage(v1) || pointIsOutsideImage(v2))
+        return false
       g2.drawLine(v1.x.toInt, v1.y.toInt, v2.x.toInt, v2.y.toInt)
     }
     figureImage.getRGB(0, 0, imgSizeX, imgSizeY, figureImageArray, 0, imgSizeX)
