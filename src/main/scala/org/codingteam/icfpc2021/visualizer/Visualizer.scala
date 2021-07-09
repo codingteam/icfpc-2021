@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021.Json
 
-import java.awt.{Color, Graphics, Graphics2D, Polygon}
+import java.awt.{Color, Graphics, Graphics2D, Polygon, Dimension}
 import java.nio.file.{Files, Path}
 import javax.swing.JPanel
 import scala.swing.{Component, Frame}
@@ -36,10 +36,7 @@ object Visualizer {
       hole.map(p => ((p.y - offset_y) / scale).toInt).toArray,
       hole.size)
 
-    new Frame {
-      title = "visualizer"
-
-      contents = Component.wrap(new JPanel() {
+    val panel = new JPanel() {
         override def paint(g: Graphics): Unit = {
           val g2 = g.asInstanceOf[Graphics2D]
           val imageOffset = 5
@@ -64,7 +61,13 @@ object Visualizer {
             g.drawString(String.valueOf(i), x, y)
           }
         }
-      })
+      }
+    panel.setPreferredSize(new Dimension(600, 400))
+
+    new Frame {
+      title = "visualizer"
+
+      contents = Component.wrap(panel)
 
       pack()
       centerOnScreen()
