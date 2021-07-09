@@ -40,6 +40,7 @@ package object icfpc2021 {
       val ySum = hole.view.map(_.y).sum
       PointD(xSum.toDouble / hole.size, ySum.toDouble / hole.size)
     }
+    val figureVerticesCount: Int = figure.vertices.size
   }
 
   case class Solution(vertices: Vector[Point])
