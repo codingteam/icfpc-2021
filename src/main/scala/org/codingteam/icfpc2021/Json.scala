@@ -33,4 +33,8 @@ object Json {
   def parseProblem(content: String): Problem = {
     mapper.readValue[Problem](content, classOf[Problem])
   }
+
+  def parseSolution(content: String): Solution = {
+    mapper.readValue[Solution](content, classOf[Solution])
+  }
 }

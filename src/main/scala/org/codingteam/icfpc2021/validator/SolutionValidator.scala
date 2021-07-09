@@ -1,9 +1,10 @@
 package org.codingteam.icfpc2021.validator
 
-import org.codingteam.icfpc2021.{Point, Problem, Solution}
+import org.codingteam.icfpc2021.{Point, Problem, Solution,Json}
 
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.nio.file.{Files, Path}
 import scala.swing.Graphics2D
 
 class SolutionValidator(problem: Problem) {
@@ -90,4 +91,17 @@ class SolutionValidator(problem: Problem) {
     true
   }
 
+}
+
+object SolutionValidator {
+  def validateFile(problemFile: Path, solutionFile: Path): Unit = {
+    val problem = Json.parseProblem(Files.readString(problemFile))
+    val solution = Json.parseSolution(Files.readString(solutionFile))
+    val validator = new SolutionValidator(problem)
+    if (validator.validate(solution)) {
+      println("Ok")
+    } else {
+      println("Fail")
+    }
+  }
 }
