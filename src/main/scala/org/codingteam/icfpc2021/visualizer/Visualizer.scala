@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021.Json
 
-import java.awt.{Color, Graphics, Graphics2D, Polygon}
+import java.awt.{Color, Graphics, Graphics2D, Polygon, Dimension}
 import java.nio.file.{Files, Path}
 import javax.swing.JPanel
 import scala.swing.{Component, Frame}
@@ -36,12 +36,17 @@ object Visualizer {
       hole.map(p => ((p.y - offset_y) / scale).toInt).toArray,
       hole.size)
 
-    new Frame {
-      title = "visualizer"
-
-      contents = Component.wrap(new JPanel() {
+    val panel = new JPanel() {
         override def paint(g: Graphics): Unit = {
           val g2 = g.asInstanceOf[Graphics2D]
+          val imageOffset = 5
+          val imageWidth = getWidth.toDouble - 2*imageOffset
+          val imageHeight = getHeight.toDouble - 2*imageOffset
+          val scaleX = imageWidth / (max_x - offset_x).toDouble
+          val scaleY = imageHeight / (max_y - offset_y).toDouble
+          val widgetScale = scaleX.min(scaleY)
+          g2.scale(widgetScale, widgetScale)
+          g2.translate(imageOffset, imageOffset)
           g2.draw(holePoly)
 
           g2.setColor(Color.RED)
@@ -50,8 +55,19 @@ object Visualizer {
             val e2 = scaled_vertices(edge.vertex2)
             g.drawLine(e1._1, e1._2, e2._1, e2._2)
           }
+
+          g2.setColor(Color.BLACK)
+          for (((x,y), i) <- scaled_vertices.zipWithIndex) {
+            g.drawString(String.valueOf(i), x, y)
+          }
         }
-      })
+      }
+    panel.setPreferredSize(new Dimension(600, 400))
+
+    new Frame {
+      title = "visualizer"
+
+      contents = Component.wrap(panel)
 
       pack()
       centerOnScreen()

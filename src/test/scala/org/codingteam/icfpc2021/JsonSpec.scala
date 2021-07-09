@@ -16,7 +16,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
     Json.parseProblem(document) should be (expectedValue)
   }
 
-  "Json" should "parse a problem with large (≥2^32) coordinates" in {
+  it should "parse a problem with large (≥2^32) coordinates" in {
     val two_to_64 = BigInt(BigInteger.ZERO).setBit(64)
 
     val document = """{"hole":[[-18446744073709551616, 18446744073709551616]], "epsilon": 0, "figure": {"edges":[], "vertices":[]}}"""
@@ -28,7 +28,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
     Json.parseProblem(document) should be (expectedValue)
   }
 
-  "Json" should "parse a problem with large (≥2^32) epsilon" in {
+  it should "parse a problem with large (≥2^32) epsilon" in {
     val two_to_64 = BigInt(BigInteger.ZERO).setBit(64)
 
     val document = """{"hole":[], "epsilon": 18446744073709551616, "figure": {"edges":[], "vertices":[]}}"""
