@@ -1,5 +1,7 @@
 package org.codingteam.icfpc2021
 
+import org.codingteam.icfpc2021.visualizer.Visualizer
+
 import java.nio.file.Path
 
 object Main extends App {
