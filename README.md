@@ -34,4 +34,5 @@ working, and that you can push to this repo):
 - Akon32
 - ForNeVeR
 - portnov
+- pink-snow
 
