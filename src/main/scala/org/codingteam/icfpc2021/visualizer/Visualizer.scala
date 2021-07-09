@@ -31,13 +31,10 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
           val (x, y) = translator.toScreen(vert)
           g.drawString(String.valueOf(i), x, y)
         }
-        selection match {
-          case Some(r) => {
-            val (x1, x2) = (r._1.x.min(r._2.x), r._1.x.max(r._2.x))
-            val (y1, y2) = (r._1.y.min(r._2.y), r._1.y.max(r._2.y))
-            g2.drawRect(x1, y1, x2 - x1, y2 - y1)
-          }
-          case None => {}
+        selection foreach { r =>
+          val (x1, x2) = (r._1.x.min(r._2.x), r._1.x.max(r._2.x))
+          val (y1, y2) = (r._1.y.min(r._2.y), r._1.y.max(r._2.y))
+          g2.drawRect(x1, y1, x2 - x1, y2 - y1)
         }
         g2.setColor(Color.RED)
         for (edge <- problem.figure.edges) {
@@ -76,12 +73,9 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
     p.addMouseMotionListener(new MouseMotionListener() {
       override def mouseDragged(e: MouseEvent): Unit = {
-        selection match {
-          case Some(sel) => {
-            sel._2.setLocation(e.getX, e.getY)
-            p.repaint()
-          }
-          case None => {}
+        selection foreach { sel =>
+          sel._2.setLocation(e.getX, e.getY)
+          p.repaint()
         }
       }
 
