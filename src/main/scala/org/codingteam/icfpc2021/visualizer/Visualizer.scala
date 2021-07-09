@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021.{Json, Point, Problem}
 
-import java.awt.{Color, Graphics, Graphics2D, Polygon, Dimension}
+import java.awt._
 import java.nio.file.{Files, Path}
 import javax.swing.JPanel
 import scala.swing.{Component, Frame}
@@ -19,7 +19,7 @@ class Translator(problem: Problem) {
   private val maxX = (problem.hole.map(_.x).max).max(problem.figure.vertices.map(_.x).max)
   private val maxY = (problem.hole.map(_.y).max).max(problem.figure.vertices.map(_.y).max)
 
-  def setScreenDimensions(width: Int, height: Int) {
+  def setScreenDimensions(width: Int, height: Int): Unit = {
     this.width = width.max(screenBorder * 2 + 1)
     this.height = height.max(screenBorder * 2 + 1)
   }
@@ -50,7 +50,7 @@ object Visualizer {
           val g2 = g.asInstanceOf[Graphics2D]
           translator.setScreenDimensions(getWidth, getHeight)
 
-          g2.draw(translator.holeScreenPolygon)
+          g2.draw(translator.holeScreenPolygon())
 
           g2.setColor(Color.RED)
           for (edge <- problem.figure.edges) {
