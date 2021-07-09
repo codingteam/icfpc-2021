@@ -28,11 +28,12 @@ object Visualizer {
         (max_coord / Int.MaxValue).toInt
       }
 
-    val scaled_vertices = figure.vertices.map(p => ( (p.x / scale).toInt, (p.y / scale).toInt ))
+    val scaled_vertices =
+      figure.vertices.map(p => ( ((p.x - offset_x) / scale).toInt, ((p.y - offset_y) / scale).toInt ))
 
     val holePoly = new Polygon(
-      hole.map(p => (p.x / scale).toInt).toArray,
-      hole.map(p => (p.y / scale).toInt).toArray,
+      hole.map(p => ((p.x - offset_x) / scale).toInt).toArray,
+      hole.map(p => ((p.y - offset_y) / scale).toInt).toArray,
       hole.size)
 
     new Frame {
