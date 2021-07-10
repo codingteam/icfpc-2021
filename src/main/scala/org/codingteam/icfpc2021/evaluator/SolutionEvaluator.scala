@@ -7,9 +7,11 @@ class SolutionEvaluator(problem: Problem) {
   /// Calculates the number of dislikes the solution will get.
   def evaluate(solution: Solution): BigInt = {
     val dislikes_count =
-      problem.hole.view.map(hole_point =>
-        solution.vertices.view.map(p => hole_point distanceSq p).min
-      ).sum
+      problem.hole.view
+        .map(hole_point =>
+          solution.vertices.view.map(p => hole_point distanceSq p).min,
+        )
+        .sum
 
     dislikes_count
   }
@@ -18,4 +20,3 @@ class SolutionEvaluator(problem: Problem) {
     solutions minBy evaluate
   }
 }
-

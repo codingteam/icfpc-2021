@@ -5,11 +5,15 @@ import org.codingteam.icfpc2021.{Point, Problem, Solution}
 
 import scala.util.Random
 
-class SOMOptimizer(problem: Problem,
-                   options: SOMOptimizer.Options = SOMOptimizer.Options()) {
+class SOMOptimizer(
+    problem: Problem,
+    options: SOMOptimizer.Options = SOMOptimizer.Options(),
+) {
   lazy val validator = new SolutionValidator(problem)
 
-  def optimize(initialCoords: IndexedSeq[Point] = problem.figure.vertices): Option[Solution] = {
+  def optimize(
+      initialCoords: IndexedSeq[Point] = problem.figure.vertices,
+  ): Option[Solution] = {
     val data = initialCoords.toArray
 
     def currentSolution = Solution(data.toVector)
@@ -24,14 +28,19 @@ object SOMOptimizer {
 
   val rnd = new Random
 
-  def parallelOptimize(problem: Problem,
-                       options: Options,
-                       initials: IndexedSeq[IndexedSeq[Point]]): IndexedSeq[Option[Solution]] = {
+  def parallelOptimize(
+      problem: Problem,
+      options: Options,
+      initials: IndexedSeq[IndexedSeq[Point]],
+  ): IndexedSeq[Option[Solution]] = {
     import scala.collection.parallel.CollectionConverters._
-    initials.par.map { init =>
-      val opt = new SOMOptimizer(problem, options)
-      opt.optimize(init)
-    }.seq.toIndexedSeq
+    initials.par
+      .map { init =>
+        val opt = new SOMOptimizer(problem, options)
+        opt.optimize(init)
+      }
+      .seq
+      .toIndexedSeq
   }
 
   def randomInitialCoords(problem: Problem): IndexedSeq[Point] = {
@@ -40,7 +49,10 @@ object SOMOptimizer {
     for (_ <- 0 until problem.figureVerticesCount) yield {
       val x = rnd.nextDouble()
       val y = rnd.nextDouble()
-      rect.min + Point(BigInt((rectSize.x.toDouble * x).toLong), BigInt((rectSize.y.toDouble * y).toLong))
+      rect.min + Point(
+        BigInt((rectSize.x.toDouble * x).toLong),
+        BigInt((rectSize.y.toDouble * y).toLong),
+      )
     }
   }
 

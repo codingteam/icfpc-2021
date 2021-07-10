@@ -10,13 +10,20 @@ import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 
 object RotationSolver {
   /// Rotate by given number of radians.
-  private def rotate_by(angle: Double, vertices: Vector[Point]): Vector[Point] = {
+  private def rotate_by(
+      angle: Double,
+      vertices: Vector[Point],
+  ): Vector[Point] = {
     val center_x = vertices.map(_.x.toDouble).sum / vertices.size.toDouble
     val center_y = vertices.map(_.y.toDouble).sum / vertices.size.toDouble
 
     vertices.map(p => {
-      val x = center_x + (p.x.toDouble - center_x) * cos(angle) - (p.y.toDouble - center_y) * sin(angle)
-      val y = center_x + (p.x.toDouble - center_x) * sin(angle) + (p.y.toDouble - center_y) * cos(angle)
+      val x = center_x + (p.x.toDouble - center_x) * cos(
+        angle,
+      ) - (p.y.toDouble - center_y) * sin(angle)
+      val y = center_x + (p.x.toDouble - center_x) * sin(
+        angle,
+      ) + (p.y.toDouble - center_y) * cos(angle)
       Point(x.toInt, y.toInt)
     })
   }
@@ -33,14 +40,16 @@ object RotationSolver {
     val steps = 360
 
     for (_ <- 0 to 10) {
-      println(s"Checking $steps angles from $start_rotation to ${start_rotation + rotation_window}")
+      println(
+        s"Checking $steps angles from $start_rotation to ${start_rotation + rotation_window}",
+      )
 
       var best: Option[(Double, BigInt, Solution)] = None
       for (i <- 0 to steps) {
         val angle = start_rotation + i * rotation_window / steps
 
         val solution = Solution(rotate_by(angle, problem.figure.vertices))
-        
+
         val dislikes = evaluator.evaluate(solution)
         best match {
           case None => best = Some((angle, dislikes, solution))
@@ -54,13 +63,17 @@ object RotationSolver {
       best match {
         case None => println("No solution found")
         case Some((angle, dislikes, solution)) => {
-          println(s"It's best to rotate by $angle radians to get $dislikes dislikes")
+          println(
+            s"It's best to rotate by $angle radians to get $dislikes dislikes",
+          )
           if (validator.validate(solution)) {
             println("And the best thing is, that solution is valid!")
           } else {
             println("Unfortunately, that solution is invalid")
           }
-          println(s"If you're still curious, the solution is: ${solution.vertices}")
+          println(
+            s"If you're still curious, the solution is: ${solution.vertices}",
+          )
 
           rotation_window /= 2.0
           start_rotation = angle - (rotation_window / 2.0)

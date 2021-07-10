@@ -33,7 +33,8 @@ package object icfpc2021 {
   case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure) {
     lazy val holeRect: Rect = Rect(
       Point(hole.minBy(_.x).x, hole.minBy(_.y).y),
-      Point(hole.maxBy(_.x).x, hole.maxBy(_.y).y))
+      Point(hole.maxBy(_.x).x, hole.maxBy(_.y).y),
+    )
 
     lazy val holeCenter: PointD = {
       val xSum = hole.view.map(_.x).sum
@@ -45,12 +46,13 @@ package object icfpc2021 {
 
   case class Solution(vertices: Vector[Point])
 
-  /**
-   * Границы 2D
-   *
-   * @param min минимальная точка (включительно).
-   * @param max максимальная точка (включительно).
-   */
+  /** Границы 2D
+    *
+    * @param min
+    *   минимальная точка (включительно).
+    * @param max
+    *   максимальная точка (включительно).
+    */
   case class Rect(min: Point, max: Point) {
     lazy val size: Point = max - min + Point.Ones
 

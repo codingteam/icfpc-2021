@@ -15,28 +15,34 @@ class SolutionValidator(problem: Problem) {
     val MaxImageSize = 4 * 1024
     val Point(shiftX, shiftY) = problem.holeRect.min
     val Point(sizeX, sizeY) = problem.holeRect.size
-    val (imgSizeX, scaleX) = if (sizeX > MaxImageSize)
-      (MaxImageSize, MaxImageSize.toDouble / sizeX.toDouble)
-    else
-      (sizeX.toInt, 1.0)
+    val (imgSizeX, scaleX) =
+      if (sizeX > MaxImageSize)
+        (MaxImageSize, MaxImageSize.toDouble / sizeX.toDouble)
+      else
+        (sizeX.toInt, 1.0)
 
-    val (imgSizeY, scaleY) = if (sizeX > MaxImageSize)
-      (MaxImageSize, MaxImageSize.toDouble / sizeY.toDouble)
-    else
-      (sizeY.toInt, 1.0)
+    val (imgSizeY, scaleY) =
+      if (sizeX > MaxImageSize)
+        (MaxImageSize, MaxImageSize.toDouble / sizeY.toDouble)
+      else
+        (sizeY.toInt, 1.0)
 
     (shiftX, shiftY, scaleX, scaleY, imgSizeX, imgSizeY)
   }
   private lazy val (holeImageArray, figureImage, figureImageArray) = {
     require(problem.hole.nonEmpty, "Hole points list must be not empty")
-    val figureImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+    val figureImage =
+      new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
     val figureImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
 
-    val holeImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+    val holeImage =
+      new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
     val g2 = holeImage.getGraphics.asInstanceOf[Graphics2D]
     g2.setColor(ClearColor)
     g2.fillRect(0, 0, imgSizeX, imgSizeY)
-    val (holeXs, holeYs, holeLength) = splitPointsIntoCoords(problem.hole map pointToImageCoord)
+    val (holeXs, holeYs, holeLength) = splitPointsIntoCoords(
+      problem.hole map pointToImageCoord,
+    )
     g2.setColor(FillColor)
     g2.drawPolygon(holeXs, holeYs, holeLength)
     g2.fillPolygon(holeXs, holeYs, holeLength)
@@ -46,7 +52,10 @@ class SolutionValidator(problem: Problem) {
   }
 
   private def pointToImageCoord(p: Point): Point = {
-    Point(((p.x - shiftX).toDouble * scaleX).toInt, ((p.y - shiftY).toDouble * scaleY).toInt)
+    Point(
+      ((p.x - shiftX).toDouble * scaleX).toInt,
+      ((p.y - shiftY).toDouble * scaleY).toInt,
+    )
   }
 
   private def splitPointsIntoCoords(ps: Seq[Point]) = {
@@ -54,25 +63,33 @@ class SolutionValidator(problem: Problem) {
   }
 
   def validate(solution: Solution): Boolean = {
-    require(solution.vertices.size == problem.figure.vertices.size, "Wrong vertices array size")
+    require(
+      solution.vertices.size == problem.figure.vertices.size,
+      "Wrong vertices array size",
+    )
     validateEdgeLength(solution) && validateHole(solution)
   }
 
   def validateEdgeLength(solution: Solution): Boolean = {
     val K = BigInt(1000000)
     problem.figure.edges forall { e =>
-      val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
-      val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
+      val problemDist = problem.figure.vertices(
+        e.vertex1,
+      ) distanceSq problem.figure.vertices(e.vertex2)
+      val solutionDist =
+        solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
       // d' in solution, d in problem.
       // abs(d' / d - 1) <= eps / 1000000
       // abs((d' - d) / d) <= eps / 1000000
       // abs((d' - d) ) * 1000000 <= d * eps
-      val correctLength = (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
+      val correctLength =
+        (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
       correctLength
     }
   }
 
-  private def pointIsOutsideImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
+  private def pointIsOutsideImage(v: Point) =
+    v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
 
   def validateHole(solution: Solution): Boolean = {
     val g2 = figureImage.getGraphics.asInstanceOf[Graphics2D]
@@ -90,7 +107,11 @@ class SolutionValidator(problem: Problem) {
     // compare raster arrays.
     val clearColorRGB = ClearColor.getRGB
     for (i <- figureImageArray.indices) {
-      if (figureImageArray(i) != clearColorRGB && holeImageArray(i) == clearColorRGB)
+      if (
+        figureImageArray(i) != clearColorRGB && holeImageArray(
+          i,
+        ) == clearColorRGB
+      )
         return false
     }
     true

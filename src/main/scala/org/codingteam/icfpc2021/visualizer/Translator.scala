@@ -3,13 +3,19 @@ package org.codingteam.icfpc2021.visualizer
 import org.codingteam.icfpc2021.{Point, Problem}
 import java.awt.Polygon
 
-/** Translate between model coordinates (BigInt) and pixel screen coordinates (Int). */
+/** Translate between model coordinates (BigInt) and pixel screen coordinates
+  * (Int).
+  */
 class Translator(problem: Problem) {
 
-  private val minX = (problem.hole.map(_.x).min).min(problem.figure.vertices.map(_.x).min)
-  private val minY = (problem.hole.map(_.y).min).min(problem.figure.vertices.map(_.y).min)
-  private val maxX = (problem.hole.map(_.x).max).max(problem.figure.vertices.map(_.x).max)
-  private val maxY = (problem.hole.map(_.y).max).max(problem.figure.vertices.map(_.y).max)
+  private val minX =
+    (problem.hole.map(_.x).min).min(problem.figure.vertices.map(_.x).min)
+  private val minY =
+    (problem.hole.map(_.y).min).min(problem.figure.vertices.map(_.y).min)
+  private val maxX =
+    (problem.hole.map(_.x).max).max(problem.figure.vertices.map(_.x).max)
+  private val maxY =
+    (problem.hole.map(_.y).max).max(problem.figure.vertices.map(_.y).max)
 
   private var scale1 = BigInt(1)
   private var scale2 = BigInt(1)
@@ -22,7 +28,9 @@ class Translator(problem: Problem) {
     val width = newWidth.max(screenBorder * 2 + 1)
     val height = newHeight.max(screenBorder * 2 + 1)
 
-    if ((width - screenBorder*2) * (maxY - minY) < (height - screenBorder*2) * (maxX - minY)) {
+    if (
+      (width - screenBorder * 2) * (maxY - minY) < (height - screenBorder * 2) * (maxX - minY)
+    ) {
       scale1 = width - screenBorder * 2
       scale2 = maxX - minX
       shiftY = ((height - (maxY - minY) * scale1 / scale2) / 2).toInt
@@ -49,4 +57,3 @@ class Translator(problem: Problem) {
     problem.hole.size,
   )
 }
-

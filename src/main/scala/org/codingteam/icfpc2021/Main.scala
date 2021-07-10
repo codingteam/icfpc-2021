@@ -9,10 +9,13 @@ import java.nio.file.Path
 object Main extends App {
   args match {
     case Array("rotation-solver", path) => RotationSolver.solve(Path.of(path))
-    case Array("validator", problemPath, solutionPath) => SolutionValidator.validateFile(Path.of(problemPath), Path.of(solutionPath))
+    case Array("validator", problemPath, solutionPath) =>
+      SolutionValidator.validateFile(
+        Path.of(problemPath),
+        Path.of(solutionPath),
+      )
     case Array("visualizer", path) => Visualizer.show(Path.of(path))
-    case _ => println(
-      """Possible arguments:
+    case _ => println("""Possible arguments:
         |
         |rotation-solver <problem.json>
         |  Solve problem by rotating the figure.

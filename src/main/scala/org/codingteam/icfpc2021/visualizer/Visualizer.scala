@@ -75,7 +75,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       override def mouseExited(e: MouseEvent): Unit = {}
 
       override def mousePressed(e: MouseEvent): Unit = {
-        selection = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
+        selection = Some(
+          (
+            new java.awt.Point(e.getX, e.getY),
+            new java.awt.Point(e.getX, e.getY),
+          ),
+        )
         p.repaint()
       }
 
@@ -92,10 +97,11 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
           val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
           val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
-          val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
+          val rect =
+            Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
 
           selectedFigureVertices.clear()
-          for((vert, i) <- solution.zipWithIndex) {
+          for ((vert, i) <- solution.zipWithIndex) {
             if (rect.contains(vert)) {
               selectedFigureVertices.add(i)
             }
@@ -113,7 +119,9 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
-    tb.add(visualizer.makeAction("Test Action", () => println("Test action called")))
+    tb.add(
+      visualizer.makeAction("Test Action", () => println("Test action called")),
+    )
     tb.add(visualizer.makeAction("←", () => moveSelected(Point(-1, 0))))
     tb.add(visualizer.makeAction("→", () => moveSelected(Point(+1, 0))))
     tb.add(visualizer.makeAction("↑", () => moveSelected(Point(0, -1))))
@@ -140,9 +148,10 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
 package object visualizer {
   // TODO: move this helper function somewhere to an appropriate place
-  def makeAction(name: String, callback: () => Unit): AbstractAction = new AbstractAction(name) {
-    override def actionPerformed(e: ActionEvent): Unit = callback()
-  }
+  def makeAction(name: String, callback: () => Unit): AbstractAction =
+    new AbstractAction(name) {
+      override def actionPerformed(e: ActionEvent): Unit = callback()
+    }
 }
 
 object Visualizer {
