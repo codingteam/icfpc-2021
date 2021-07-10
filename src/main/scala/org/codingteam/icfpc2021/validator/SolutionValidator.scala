@@ -1,11 +1,17 @@
 package org.codingteam.icfpc2021.validator
 
-import org.codingteam.icfpc2021.{Json, Point, Problem, Solution}
+import org.codingteam.icfpc2021.{Json, Point, Problem, Solution, Edge}
 
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.nio.file.{Files, Path}
 import scala.swing.Graphics2D
+
+object EdgeCheckResult extends Enumeration {
+  type EdgeCheckResult = Value
+  val TooShort, Exact, TooLong = Value
+}
+import EdgeCheckResult._
 
 class SolutionValidator(problem: Problem) {
   private val ClearColor: Color = Color.BLACK
@@ -58,17 +64,27 @@ class SolutionValidator(problem: Problem) {
     validateEdgeLength(solution) && validateHole(solution)
   }
 
-  def validateEdgeLength(solution: Solution): Boolean = {
+  def checkEdgeLength(solution: Solution, e: Edge) : EdgeCheckResult = {
     val K = BigInt(1000000)
+    val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
+    val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
+    // d' in solution, d in problem.
+    // abs(d' / d - 1) <= eps / 1000000
+    // abs((d' - d) / d) <= eps / 1000000
+    // abs((d' - d) ) * 1000000 <= d * eps
+    val correctLength = (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
+    if (correctLength) {
+      Exact
+    } else if (solutionDist > problemDist) {
+      TooLong
+    } else {
+      TooShort
+    }
+  }
+
+  def validateEdgeLength(solution: Solution): Boolean = {
     problem.figure.edges forall { e =>
-      val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
-      val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
-      // d' in solution, d in problem.
-      // abs(d' / d - 1) <= eps / 1000000
-      // abs((d' - d) / d) <= eps / 1000000
-      // abs((d' - d) ) * 1000000 <= d * eps
-      val correctLength = (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
-      correctLength
+      checkEdgeLength(solution, e) == Exact
     }
   }
 

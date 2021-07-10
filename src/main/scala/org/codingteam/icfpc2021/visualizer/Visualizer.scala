@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
-import org.codingteam.icfpc2021.validator.SolutionValidator
+import org.codingteam.icfpc2021.validator.{SolutionValidator, EdgeCheckResult}
 
 import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
@@ -121,14 +121,16 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
           g.fillOval(x - 4, y - 4, 8, 8)
         }
 
+        val validator = new SolutionValidator(problem)
         for ((edge, i) <- problem.figure.edges.zipWithIndex) {
           val (x1, y1) = translator.toScreen(solution(edge.vertex1))
           val (x2, y2) = translator.toScreen(solution(edge.vertex2))
           val distance = solution(edge.vertex1) distanceSq solution(edge.vertex2)
           val origDistance = originalEdgeLengths(i)
-          if (distance > origDistance) {
+          val check = validator.checkEdgeLength(Solution(solution), edge)
+          if (check == EdgeCheckResult.TooLong) {
             g2.setColor(Color.GREEN)
-          } else if (distance < origDistance) {
+          } else if (check == EdgeCheckResult.TooShort) {
             g2.setColor(Color.BLUE)
           } else {
             g2.setColor(Color.RED)
