@@ -13,11 +13,11 @@ import scala.language.implicitConversions
 import scala.swing.Graphics2D
 import scala.util.chaining._
 
-class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
+class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
-  private val translator = new Translator(problem)
-  private var solution = problem.figure.vertices
-  private val originalEdgeLengths = problem.figure.edges.map(e => solution(e.vertex1) distanceSq solution(e.vertex2))
+  private var translator: Translator = _
+  private var solution: Vector[Point] = _
+  private var originalEdgeLengths: Vector[BigInt] = _
 
   trait Tool {
     // TODO: decouple default implementations from childrens implementations
@@ -40,6 +40,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         sel._2.setLocation(e.getX, e.getY)
       }
     }
+
+    def reset(): Unit = {}
   }
 
   class SelectionTool extends Tool {
@@ -62,6 +64,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         updateStatus()
       }
     }
+
+    override def reset(): Unit = selectedFigureVertices = mutable.BitSet()
   }
 
   class MoveTool extends Tool {
@@ -83,6 +87,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         prev = curr
       }
     }
+
+    override def reset(): Unit = prev = Point(0, 0)
   }
 
   private val selectionTool = new SelectionTool
@@ -174,8 +180,23 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     p
   }
 
+  private def moveToNextProblem(dir: Int): Unit = {
+    val problemDir = problemFile.getParent
+    val currentFileName = problemFile.getFileName.toString
+    val problemNumber = currentFileName.replace(".json", "").toInt
+    val newFile = problemDir.resolve(s"${problemNumber + dir}.json")
+    if (Files.exists(newFile)) {
+      problemFile = newFile
+      problem = Json.parseProblem(Files.readString(problemFile))
+      init()
+    }
+  }
+
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
+    tb.add(makeAction("Prev file", () => moveToNextProblem(-1)))
+    tb.add(makeAction("Next file", () => moveToNextProblem(1)))
+
     tb.add(makeAction("Print JSON", () => printSolution()))
 
     // Move
@@ -246,14 +267,23 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   }
 
   private def init(): Unit = {
-    getContentPane.add(mainPanel)
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-    setLocationByPlatform(true)
-    pack()
+    translator = new Translator(problem)
+    solution = problem.figure.vertices
+    originalEdgeLengths = problem.figure.edges.map(e => solution(e.vertex1) distanceSq solution(e.vertex2))
+
+    setTitle(s"Visualizer - ${problemFile.getFileName.toString}")
     updateStatus()
+
+    selectionTool.reset()
+    moveTool.reset()
   }
 
   init()
+
+  getContentPane.add(mainPanel)
+  setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+  setLocationByPlatform(true)
+  pack()
 }
 
 object Visualizer {
@@ -261,7 +291,7 @@ object Visualizer {
     val content = Files.readString(problemFile)
     val problem = Json.parseProblem(content)
 
-    val v = new Visualizer(problem)
+    val v = new Visualizer(problemFile, problem)
     v.setVisible(true)
     v
   }
