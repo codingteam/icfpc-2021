@@ -5,7 +5,7 @@ import org.codingteam.icfpc2021.{Edge, PointD, Problem, Solution}
 import scala.collection.mutable
 
 object ForceBasedSolver {
-  def stepForward(problem: Problem, solution: Solution, steps: Int = 1): Solution = {
+  def stepForward(problem: Problem, solution: Solution, steps: Int = 100): Solution = {
     val forces = mutable.Map[Int, PointD]().withDefaultValue(PointD(0, 0))
     val problemVertices = problem.figure.vertices.map(_.toPointD())
     var vertices = solution.vertices.map(_.toPointD())
@@ -15,7 +15,7 @@ object ForceBasedSolver {
         val solV1 = vertices(v1)
         val solV2 = vertices(v2)
         val solutionDist = (solV2 - solV1).abs()
-        val forceAbs = (problemDist - solutionDist) / 2
+        val forceAbs = -(problemDist - solutionDist) / 2
 
         forces(v1) += (solV2 - solV1).normalize() * forceAbs
         forces(v2) += (solV1 - solV2).normalize() * forceAbs
@@ -24,7 +24,7 @@ object ForceBasedSolver {
       vertices = applyForces(vertices, forces)
     }
 
-    solution.copy(vertices = vertices.map(_.trunc()))
+    solution.copy(vertices = vertices.map(_.round()))
   }
 
   private def applyForces(vertices: Seq[PointD], forces: mutable.Map[Int, PointD]): Vector[PointD] = {

@@ -3,6 +3,7 @@ package org.codingteam
 import java.awt.Color
 import java.awt.image.BufferedImage
 import scala.collection.mutable
+import scala.math.BigDecimal.RoundingMode
 import scala.math.sqrt
 import scala.swing.Graphics2D
 import scala.util.control.Breaks._
@@ -55,6 +56,10 @@ package object icfpc2021 {
 
     def trunc() : Point = {
       Point(BigDecimal(x).toBigInt, BigDecimal(y).toBigInt)
+    }
+
+    def round(): Point = {
+      Point(BigDecimal(x).setScale(0, RoundingMode.HALF_EVEN).toBigInt, BigDecimal(y).setScale(0, RoundingMode.HALF_EVEN).toBigInt)
     }
 
     def *(k: Double) : PointD = {
