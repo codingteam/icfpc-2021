@@ -296,7 +296,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def runForceSolver(): Unit = {
-    val result = ForceBasedSolver.stepForward(problem, Solution(solution, null))
+    val result = ForceBasedSolver.stepForward(problem, Solution(solution, null), steps=100)
     solution = result.vertices
     repaint()
     updateStatus()

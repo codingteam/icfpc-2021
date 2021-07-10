@@ -19,6 +19,7 @@ object ForceBasedSolver {
 
     // Stretched/compressed edges are trying to restore their lengths
     for (_ <- 0 until steps) {
+      val edgeForces = mutable.Map[Int, PointD]().withDefaultValue(PointD(0, 0))
       for (Edge(v1, v2) <- problem.figure.edges) {
         val problemDist = (problemVertices(v2) - problemVertices(v1)).abs()
         val solV1 = vertices(v1)
@@ -26,8 +27,19 @@ object ForceBasedSolver {
         val solutionDist = (solV2 - solV1).abs()
         val forceAbs = -(problemDist - solutionDist) / 2
 
-        forces(v1) += (solV2 - solV1).normalize() * forceAbs
-        forces(v2) += (solV1 - solV2).normalize() * forceAbs
+        edgeForces(v1) += (solV2 - solV1).normalize() * forceAbs
+        edgeForces(v2) += (solV1 - solV2).normalize() * forceAbs
+      }
+
+      val invN = 1.0 / (2* problem.figure.edges.length.toDouble)
+      val avgForce = edgeForces.values.reduce(_+_) * invN
+
+      for (i <- edgeForces.keys) {
+        edgeForces(i) -= avgForce
+      }
+
+      for (i <- forces.keys) {
+        forces(i) += edgeForces(i)
       }
 
       vertices = applyForces(vertices, forces)
