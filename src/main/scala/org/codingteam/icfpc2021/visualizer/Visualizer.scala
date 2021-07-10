@@ -147,7 +147,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       }
     }
     p.setDoubleBuffered(true)
-    p.setPreferredSize(new Dimension(600, 400))
+    p.setPreferredSize(new Dimension(1920, 960))
 
     p.addMouseListener(new MouseListener() {
       override def mouseClicked(me: MouseEvent): Unit = {
