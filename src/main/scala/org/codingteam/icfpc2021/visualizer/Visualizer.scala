@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
-import org.codingteam.icfpc2021.validator.{SolutionValidator, EdgeCheckResult}
+import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
 import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
@@ -186,8 +186,9 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     // Tools
     val buttonGroup = new ButtonGroup()
 
-    def addTool(text: String, newTool: Tool): Unit = {
-      var button = new JToggleButton(text)
+    def addTool(text: String, newTool: Tool, mnemonic: Option[Char] = None): Unit = {
+      val button = new JToggleButton(text)
+      mnemonic foreach button.setMnemonic
       tb.add(button)
       buttonGroup.add(button)
       button.addActionListener(e => {
@@ -196,8 +197,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       })
     }
 
-    addTool("Select", selectionTool)
-    addTool("Move", moveTool)
+    addTool("Select", selectionTool, Some('S'))
+    addTool("Move", moveTool, Some('e'))
 
     tb
   }
@@ -212,7 +213,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     tb.add(new JLabel("Dislikes count:"))
     tb.add(solutionDislikesText)
     // we need auto update?
-    tb.add(makeAction("Update", () => updateStatus()))
+    tb.add(makeAction("Update", () => updateStatus(), Some('a')))
     tb
   }
 
