@@ -1,9 +1,9 @@
 package org.codingteam.icfpc2021.visualizer
 
-import org.codingteam.icfpc2021.{Json, Problem, Point, Rect}
+import org.codingteam.icfpc2021.{Json, Point, Problem, Rect}
 
 import java.awt._
-import java.awt.event.{ActionEvent, MouseEvent, MouseListener, _}
+import java.awt.event.{MouseEvent, MouseListener, _}
 import java.nio.file.{Files, Path}
 import javax.swing._
 import scala.collection.mutable.BitSet
@@ -151,16 +151,17 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
-    tb.add(visualizer.makeAction("Test Action", () => println("Test action called")))
+    tb.add(makeAction("Test Action", () => println("Test action called")))
 
     // Move
-    tb.add(visualizer.makeAction("←", () => moveSelected(Point(-1, 0))))
-    tb.add(visualizer.makeAction("→", () => moveSelected(Point(+1, 0))))
-    tb.add(visualizer.makeAction("↑", () => moveSelected(Point(0, -1))))
-    tb.add(visualizer.makeAction("↓", () => moveSelected(Point(0, +1))))
+    tb.add(makeAction("←", () => moveSelected(Point(-1, 0))))
+    tb.add(makeAction("→", () => moveSelected(Point(+1, 0))))
+    tb.add(makeAction("↑", () => moveSelected(Point(0, -1))))
+    tb.add(makeAction("↓", () => moveSelected(Point(0, +1))))
 
     // Tools
     val buttonGroup = new ButtonGroup();
+
     def addTool(text: String, newTool: Tool): Unit = {
       var button = new JToggleButton(text)
       tb.add(button)
@@ -195,13 +196,6 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   }
 
   init()
-}
-
-package object visualizer {
-  // TODO: move this helper function somewhere to an appropriate place
-  def makeAction(name: String, callback: () => Unit): AbstractAction = new AbstractAction(name) {
-    override def actionPerformed(e: ActionEvent): Unit = callback()
-  }
 }
 
 object Visualizer {
