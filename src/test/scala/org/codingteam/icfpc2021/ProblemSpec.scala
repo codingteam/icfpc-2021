@@ -32,4 +32,22 @@ class ProblemSpec extends AnyFlatSpec with should.Matchers {
     (problem.isPointInHole(Point(50, 70))) shouldBe true
     (problem.isPointInHole(Point(49, 71))) shouldBe false
   }
+
+  "Problem.intersectionsWithHoleBorder" should "return a set of intersection points" in {
+    val initial_vertices = Vector(Point(20, 0), Point(20, 10))
+    val initial_edges = Vector(Edge(0, 1))
+    val initial_figure = Figure(initial_edges, initial_vertices)
+
+    val hole = Vector(Point(0, 0), Point(0, 10), Point(10, 0))
+    val epsilon = 1
+    val bonuses = Vector()
+    val problem = Problem(hole, epsilon, initial_figure, bonuses)
+
+    val vertices = Vector(Point(0, 0), Point(10, 10))
+    val solution = Solution(vertices, Vector[BonusUsage]())
+
+    val expected = Set(Set(Point(0, 0)), Set(Point(5, 5)))
+
+    problem.intersectionsWithHoleBorder(solution) should contain theSameElementsAs expected
+  }
 }
