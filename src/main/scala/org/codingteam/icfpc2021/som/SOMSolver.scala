@@ -5,8 +5,8 @@ import org.codingteam.icfpc2021.{Point, Problem, Solution}
 
 import scala.util.Random
 
-class SOMOptimizer(problem: Problem,
-                   options: SOMOptimizer.Options = SOMOptimizer.Options()) {
+class SOMSolver(problem: Problem,
+                options: SOMSolver.Options = SOMSolver.Options()) {
   lazy val validator = new SolutionValidator(problem)
   val rnd = new Random()
 
@@ -32,7 +32,7 @@ class SOMOptimizer(problem: Problem,
   }
 }
 
-object SOMOptimizer {
+object SOMSolver {
   case class Options(stepCount: Integer = 100000,
                      startSigma: Double = 1.0,
                      startAlpha: Double = 0.1)
@@ -44,7 +44,7 @@ object SOMOptimizer {
                        initials: IndexedSeq[IndexedSeq[Point]]): IndexedSeq[Option[Solution]] = {
     import scala.collection.parallel.CollectionConverters._
     initials.par.map { init =>
-      val opt = new SOMOptimizer(problem, options)
+      val opt = new SOMSolver(problem, options)
       opt.optimize(init)
     }.seq.toIndexedSeq
   }
