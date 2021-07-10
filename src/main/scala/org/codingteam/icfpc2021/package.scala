@@ -1,8 +1,8 @@
 package org.codingteam
 
 import scala.collection.mutable
-import util.control.Breaks._
 import scala.math.sqrt
+import scala.util.control.Breaks._
 
 package object icfpc2021 {
 
@@ -44,6 +44,8 @@ package object icfpc2021 {
   }
 
   case class PointD(x: Double, y: Double) {
+    def abs(): Double = sqrt(x*x + y*y)
+
     def dot(other: PointD) : Double = {
       x*other.x + y*other.y
     }
@@ -56,12 +58,21 @@ package object icfpc2021 {
       PointD(k*x, k*y)
     }
 
+    def /(k: Double): PointD = {
+      PointD(x / k, y / k)
+    }
+
     def +(other: PointD) : PointD = {
       PointD(x + other.x, y + other.y)
     }
 
     def -(other: PointD) : PointD = {
       PointD(x - other.x, y - other.y)
+    }
+
+    def normalize(): PointD = {
+      val a = abs()
+      PointD(x / a, y / a)
     }
   }
 

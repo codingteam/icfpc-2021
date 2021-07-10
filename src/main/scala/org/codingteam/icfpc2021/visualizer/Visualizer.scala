@@ -2,6 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
@@ -225,6 +226,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Move", moveTool, Some('e'))
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
+    tb.add(makeAction("Force solver", () => runForceSolver()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
       repaint()
@@ -274,6 +276,13 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       repaint()
       updateStatus()
     }
+  }
+
+  private def runForceSolver(): Unit = {
+    val result = ForceBasedSolver.stepForward(problem, Solution(solution, null))
+    solution = result.vertices
+    repaint()
+    updateStatus()
   }
 
   private def moveSelected(delta: Point): Unit = {
