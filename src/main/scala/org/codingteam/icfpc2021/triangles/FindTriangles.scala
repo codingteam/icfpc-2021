@@ -7,6 +7,6 @@ import java.nio.file.{Files, Path}
 object FindTriangles {
   def process(file: Path): Unit = {
     val problem = Json.parseProblem(Files.readString(file))
-    println(problem.figure.triangles)
+    println(problem.figure.triangleGroups)
   }
 }

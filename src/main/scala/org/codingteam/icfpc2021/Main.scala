@@ -28,7 +28,7 @@ object Main extends App {
       println("""Possible arguments:
         |
         |find-triangles <problem.json>
-        |  Prints out a list of triangles in the figure (as triples of indices into figure.vertices).
+        |  Prints out groups of interconnected triangles in the figure (as triples of indices into figure.vertices).
         |
         |rotation-solver <problem.json>
         |  Solve problem by rotating the figure.

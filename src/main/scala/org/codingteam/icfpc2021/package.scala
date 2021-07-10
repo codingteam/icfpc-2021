@@ -1,6 +1,7 @@
 package org.codingteam
 
 import scala.collection.mutable
+import util.control.Breaks._
 
 package object icfpc2021 {
 
@@ -46,6 +47,7 @@ package object icfpc2021 {
       neighbours map (_.toArray.toSeq)
     }
 
+    /// Indices of vertices of all unique trinalges within the figure.
     lazy val triangles: Vector[(Int, Int, Int)] = {
       vertices.indices
         .flatMap(idx =>
@@ -59,6 +61,37 @@ package object icfpc2021 {
             ),
         )
         .toVector
+    }
+
+    /// Like `triangles`, but triangles are divided into disconnected groups of
+    //interconnected triangles. Two triangles are considered to be connected if
+    //they share at least one vertex.
+    lazy val triangleGroups: Set[Vector[(Int, Int, Int)]] = {
+      // Maps a set of vertices into a vector of triangles that use at least one of those vertices
+      var groups: mutable.Map[Set[Int], Array[(Int, Int, Int)]] =
+        mutable.Map(triangles map {p => ( Set(p._1, p._2, p._3), Array(p) )} : _*)
+
+      var changed = true
+      while (changed) {
+        changed = false
+        breakable {
+          for ((k1, v1) <- groups) {
+            for ((k2, v2) <- groups) {
+              if (k1 != k2 && !k1.intersect(k2).isEmpty) {
+                changed = true
+                val new_k = k1 ++ k2
+                val new_v = v1 ++: v2
+                groups -= k1
+                groups -= k2
+                groups += (new_k -> new_v)
+                break()
+              }
+            }
+          }
+        }
+      }
+
+      groups.values.map(a => a.sorted.toVector).toSet
     }
   }
 
