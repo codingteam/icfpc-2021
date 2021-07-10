@@ -2,6 +2,7 @@ package org.codingteam
 
 import scala.collection.mutable
 import util.control.Breaks._
+import scala.math.sqrt
 
 package object icfpc2021 {
 
@@ -13,6 +14,19 @@ package object icfpc2021 {
     def -(other: Point): Point = Point(this.x - other.x, this.y - other.y)
 
     def *(k: Double): Point = Point(BigInt((this.x.toDouble * k).toLong), BigInt((this.y.toDouble * k).toLong))
+
+    def abs() : Double = {
+      sqrt((x*x + y*y).toDouble)
+    }
+
+    def normalized() : PointD = {
+      val norm = abs()
+      PointD(x.toDouble / norm, y.toDouble / norm)
+    }
+
+    def toPointD() : PointD = {
+      PointD(x.toDouble, y.toDouble)
+    }
 
     def distanceSq(other: Point): BigInt = {
       val r = this - other
@@ -29,7 +43,27 @@ package object icfpc2021 {
     val Ones: Point = Point(1, 1)
   }
 
-  case class PointD(x: Double, y: Double)
+  case class PointD(x: Double, y: Double) {
+    def dot(other: PointD) : Double = {
+      x*other.x + y*other.y
+    }
+
+    def round() : Point = {
+      Point(BigDecimal(x).toBigInt, BigDecimal(y).toBigInt)
+    }
+
+    def *(k: Double) : PointD = {
+      PointD(k*x, k*y)
+    }
+
+    def +(other: PointD) : PointD = {
+      PointD(x + other.x, y + other.y)
+    }
+
+    def -(other: PointD) : PointD = {
+      PointD(x - other.x, y - other.y)
+    }
+  }
 
   case class Edge(vertex1: Int, vertex2: Int) {
     override def toString: String = s"v$vertex1 - v$vertex2"

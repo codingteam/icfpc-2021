@@ -75,4 +75,14 @@ object DumbSolver {
 
     (res1, res2)
   }
+
+  def mirror(p: Point, neighbour1: Point, neighbour2: Point): Point = {
+    val dir = (neighbour2 - neighbour1).normalized()
+    val dp1 = (p - neighbour1).toPointD()
+    val projectionLength = dir dot dp1
+    val projection = dir * projectionLength
+    val height = dp1 - projection
+
+    (projection - height).round()
+  }
 }

@@ -6,7 +6,6 @@ import matchers._
 
 import java.math.BigInteger
 import math.sqrt
-
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.solver._
 
@@ -42,5 +41,14 @@ class DumbSolverSpec extends AnyFlatSpec with should.Matchers {
     val (r1, r2) = DumbSolver.calcThirdPoint(p1, p2, 5, 5)
 
     Seq(r1, r2) should contain theSameElementsAs Seq(Point(5, 0), Point(4, 3))
+  }
+
+  "Mirror" should "work" in {
+    val p1 = Point(0, 0)
+    val p2 = Point(3, 3)
+    val p = Point(1, 0)
+
+    val r = DumbSolver.mirror(p, p1, p2)
+    r should be (Point(0, 1))
   }
 }
