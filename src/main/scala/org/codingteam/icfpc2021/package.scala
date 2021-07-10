@@ -7,6 +7,7 @@ import scala.math.BigDecimal.RoundingMode
 import scala.math.sqrt
 import scala.swing.Graphics2D
 import scala.util.control.Breaks._
+import scala.util.Random
 
 package object icfpc2021 {
 
@@ -207,6 +208,21 @@ package object icfpc2021 {
       val imgPoint = pointToImageCoord(point)
       val i = (imgPoint.x + imgPoint.y * imgSizeX).toInt
       !pointIsOutsideOfImage(point) && (holeImageArray(i) == FillColor.getRGB)
+    }
+
+    def randomPointInHole(): Point = {
+      while (true) {
+        val x = BigInt((Random.nextDouble() * holeRect.size.x.toDouble).toLong) + holeRect.min.x
+        val y = BigInt((Random.nextDouble() * holeRect.size.y.toDouble).toLong) + holeRect.min.y
+        val p = Point(x, y)
+        if (isPointInHole(p)) {
+          return p
+        }
+      }
+
+      // This will never be reached, but without this line Scala complains that
+      // the function returns Unit
+      holeRect.min
     }
   }
 
