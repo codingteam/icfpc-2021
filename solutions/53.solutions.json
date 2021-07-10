@@ -1,4 +1,11 @@
 [ {
+  "id" : "d9367829-137b-4cb4-8272-36f98dfddd68",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null
+  }
+}, {
   "id" : "953e16d6-ce45-474a-942b-641ef9cffa4d",
   "solution" : {
     "state" : "VALID",
