@@ -19,4 +19,12 @@ class DumbSolverSpec extends AnyFlatSpec with should.Matchers {
     }
     //points should be expected
   }
+
+  "Triangle" should "be solved" in {
+    val p1 = Point(0, 0)
+    val p2 = Point(9, 3)
+    val (r1, r2) = DumbSolver.calcThirdPoint(p1, p2, 5, 5)
+    println(r1)
+    println(r2)
+  }
 }

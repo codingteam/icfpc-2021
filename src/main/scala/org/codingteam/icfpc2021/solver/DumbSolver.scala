@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.solver
 
 import java.nio.file.{Files, Path}
 
-import math.{sin, cos, Pi}
+import math.{sin, cos, Pi, sqrt}
 import scala.collection.mutable
 
 import org.codingteam.icfpc2021.{Json, Point, Problem, Solution}
@@ -44,5 +44,35 @@ object DumbSolver {
       }
     }
     result.toSeq
+  }
+
+  def calcThirdPoint(p1: Point, p2: Point, r1: BigInt, r2: BigInt) : (Point, Point) = {
+    val (x1, y1) = (p1.x.toDouble, p1.y.toDouble)
+    val (x2, y2) = (p2.x.toDouble, p2.y.toDouble)
+    val (r1d, r2d) = (r1.toDouble, r2.toDouble)
+    val (r12, r22) = (r1d*r1d, r2d*r2d)
+    val (r14, r24) = (r12*r12, r22*r22)
+    val d2 = (p1 distanceSq p2).toDouble
+    val d = sqrt(d2)
+    val (dirX, dirY) = ((x2-x1)/d, (y2-y1)/d)
+
+    val cosAlpha = (r12 - r22 + d2) / (2*r1d*d)
+    val cosBeta = (r22 - r12 + d2) / (2*r2d*d)
+
+    val sinAlpha = sqrt(-r24 - (-2*r12 - 2*d2)*r22 - r14 + 2*d2*r12 - d2*d2) / (2*d*r1d)
+    //val sinAlpha = sqrt(1 - cosAlpha*cosAlpha)
+    val projectionLength = r1d * cosAlpha
+    val height = r1d * sinAlpha
+
+    val (orthX, orthY) = (x1 + projectionLength*dirX, y1 + projectionLength*dirY)
+    val (heightX, heightY) = (-height*dirY, height*dirX)
+    
+    val (p1x, p1y) = (orthX + heightX, orthY + heightY)
+    val (p2x, p2y) = (orthX - heightX, orthY - heightY)
+
+    val res1 = Point(BigDecimal.valueOf(p1x).toBigInt, BigDecimal.valueOf(p1y).toBigInt)
+    val res2 = Point(BigDecimal.valueOf(p2x).toBigInt, BigDecimal.valueOf(p2y).toBigInt)
+
+    (res1, res2)
   }
 }
