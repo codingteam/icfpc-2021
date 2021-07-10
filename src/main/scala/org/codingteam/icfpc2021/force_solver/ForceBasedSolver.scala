@@ -9,6 +9,15 @@ object ForceBasedSolver {
     val forces = mutable.Map[Int, PointD]().withDefaultValue(PointD(0, 0))
     val problemVertices = problem.figure.vertices.map(_.toPointD())
     var vertices = solution.vertices.map(_.toPointD())
+
+    // Points outside the hole are trying to move inward
+    for (i <- problem.figure.vertices.indices) {
+      if (! problem.isPointInHole(solution.vertices(i))) {
+        forces(i) += (problem.holeCenter - problemVertices(i)) / 10
+      }
+    }
+
+    // Stretched/compressed edges are trying to restore their lengths
     for (_ <- 0 until steps) {
       for (Edge(v1, v2) <- problem.figure.edges) {
         val problemDist = (problemVertices(v2) - problemVertices(v1)).abs()
