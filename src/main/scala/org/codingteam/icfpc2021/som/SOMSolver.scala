@@ -15,17 +15,19 @@ class SOMSolver(problem: Problem,
 
   def optimize(initialCoords: IndexedSeq[Point] = problem.figure.vertices): Option[Solution] = {
     log(s"SOM solver, options=$options")
-    val data = initialCoords.toArray
+    val Scale: Int = 6
+    val data = initialCoords.view.map(_.toPointBD(Scale)).toArray
+    val hole = problem.hole.view.map(_.toPointBD(Scale)).toArray
 
-    def currentSolution = Solution(data.toVector, null)
+    def currentSolution = Solution(data.view.map(_.toPoint).toVector, null)
 
     val processedVertices = Array.ofDim[Boolean](problem.figure.vertices.size)
     val currentVertices = mutable.Buffer[Int]()
     val nextVertices = mutable.Buffer[Int]()
     for (t <- 0 until options.stepCount) {
-      log(s"$t/${options.stepCount}..")
+      //      log(s"$t/${options.stepCount}..")
       java.util.Arrays.fill(processedVertices, false)
-      val xt = problem.hole(rnd.nextInt(problem.hole.size))
+      val xt = hole(rnd.nextInt(problem.hole.size))
       val tf = (options.stepCount - t).toDouble / options.stepCount
       val alpha = options.startAlpha * tf
       val sigma = options.startSigma * tf
@@ -56,6 +58,8 @@ class SOMSolver(problem: Problem,
       // Move to minimize out of hole square (?).
 
     }
+    //    data foreach (d => log(d.toString))
+    //    currentSolution.vertices foreach (d => log(d.toString))
     Some(currentSolution)
   }
 }

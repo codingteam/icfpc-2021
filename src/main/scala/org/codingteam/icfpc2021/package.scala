@@ -6,8 +6,8 @@ import scala.collection.mutable
 import scala.math.BigDecimal.RoundingMode
 import scala.math.sqrt
 import scala.swing.Graphics2D
-import scala.util.control.Breaks._
 import scala.util.Random
+import scala.util.control.Breaks._
 
 package object icfpc2021 {
 
@@ -20,17 +20,22 @@ package object icfpc2021 {
 
     def *(k: Double): Point = Point(BigInt((this.x.toDouble * k).toLong), BigInt((this.y.toDouble * k).toLong))
 
-    def abs() : Double = {
-      sqrt((x*x + y*y).toDouble)
+    def abs(): Double = {
+      sqrt((x * x + y * y).toDouble)
     }
 
-    def normalized() : PointD = {
+    def normalized(): PointD = {
       val norm = abs()
       PointD(x.toDouble / norm, y.toDouble / norm)
     }
 
-    def toPointD() : PointD = {
+    def toPointD(): PointD = {
       PointD(x.toDouble, y.toDouble)
+    }
+
+    def toPointBD(scale: Int = 3): PointBD = {
+      val k = BigInt(10) pow scale
+      PointBD(BigDecimal(x * k, scale), BigDecimal(y * k, scale))
     }
 
     def distanceSq(other: Point): BigInt = {
@@ -48,14 +53,50 @@ package object icfpc2021 {
     val Ones: Point = Point(1, 1)
   }
 
-  case class PointD(x: Double, y: Double) {
-    def abs(): Double = sqrt(x*x + y*y)
+  case class PointBD(x: BigDecimal, y: BigDecimal) {
+    override def toString: String = s"($x, $y)"
 
-    def dot(other: PointD) : Double = {
-      x*other.x + y*other.y
+    def +(other: PointBD): PointBD = PointBD(this.x + other.x, this.y + other.y)
+
+    def -(other: PointBD): PointBD = PointBD(this.x - other.x, this.y - other.y)
+
+    def *(k: Double): PointBD = PointBD(this.x * k, this.y * k)
+
+    def abs(): Double = {
+      sqrt((x * x + y * y).toDouble)
     }
 
-    def trunc() : Point = {
+    def normalized(): PointBD = {
+      val norm = abs()
+      PointBD(x.toDouble / norm, y.toDouble / norm)
+    }
+
+    def toPointD: PointD = {
+      PointD(x.toDouble, y.toDouble)
+    }
+
+    def toPoint: Point = {
+      Point(x.setScale(0, RoundingMode.HALF_UP).rounded.toBigInt, y.setScale(0, RoundingMode.HALF_UP).rounded.toBigInt)
+    }
+
+    def distanceSq(other: PointBD): BigDecimal = {
+      val r = this - other
+      r.x * r.x + r.y * r.y
+    }
+
+    def moveTowards(target: PointBD, distanceK: Double): PointBD = {
+      this + (target - this) * distanceK
+    }
+  }
+
+  case class PointD(x: Double, y: Double) {
+    def abs(): Double = sqrt(x * x + y * y)
+
+    def dot(other: PointD): Double = {
+      x * other.x + y * other.y
+    }
+
+    def trunc(): Point = {
       Point(BigDecimal(x).toBigInt, BigDecimal(y).toBigInt)
     }
 
@@ -63,19 +104,19 @@ package object icfpc2021 {
       Point(BigDecimal(x).setScale(0, RoundingMode.HALF_EVEN).toBigInt, BigDecimal(y).setScale(0, RoundingMode.HALF_EVEN).toBigInt)
     }
 
-    def *(k: Double) : PointD = {
-      PointD(k*x, k*y)
+    def *(k: Double): PointD = {
+      PointD(k * x, k * y)
     }
 
     def /(k: Double): PointD = {
       PointD(x / k, y / k)
     }
 
-    def +(other: PointD) : PointD = {
+    def +(other: PointD): PointD = {
       PointD(x + other.x, y + other.y)
     }
 
-    def -(other: PointD) : PointD = {
+    def -(other: PointD): PointD = {
       PointD(x - other.x, y - other.y)
     }
 
@@ -123,7 +164,7 @@ package object icfpc2021 {
     lazy val triangleGroups: Set[Vector[(Int, Int, Int)]] = {
       // Maps a set of vertices into a vector of triangles that use at least one of those vertices
       var groups: mutable.Map[Set[Int], Array[(Int, Int, Int)]] =
-        mutable.Map(triangles map {p => ( Set(p._1, p._2, p._3), Array(p) )} : _*)
+        mutable.Map(triangles map { p => (Set(p._1, p._2, p._3), Array(p)) }: _*)
 
       var changed = true
       while (changed) {
@@ -131,7 +172,7 @@ package object icfpc2021 {
         breakable {
           for ((k1, v1) <- groups) {
             for ((k2, v2) <- groups) {
-              if (k1 != k2 && !k1.intersect(k2).isEmpty) {
+              if (k1 != k2 && k1.intersect(k2).nonEmpty) {
                 changed = true
                 val new_k = k1 ++ k2
                 val new_v = v1 ++: v2
@@ -196,12 +237,15 @@ package object icfpc2021 {
       holeImage.getRGB(0, 0, imgSizeX, imgSizeY, holeImageArray, 0, imgSizeX)
       holeImageArray
     }
+
     private def pointToImageCoord(p: Point): Point = {
       Point(((p.x - shiftX).toDouble * scaleX).toInt, ((p.y - shiftY).toDouble * scaleY).toInt)
     }
+
     private def splitPointsIntoCoords(ps: Seq[Point]) = {
       (ps.view.map(_.x.toInt).toArray, ps.view.map(_.y.toInt).toArray, ps.size)
     }
+
     private def pointIsOutsideOfImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
 
     def isPointInHole(point: Point): Boolean = {
@@ -227,6 +271,7 @@ package object icfpc2021 {
   }
 
   case class BonusUsage(bonus: String, problem: Int, edge: Option[Edge])
+
   case class Solution(vertices: Vector[Point], bonuses: Vector[BonusUsage])
 
   /**
