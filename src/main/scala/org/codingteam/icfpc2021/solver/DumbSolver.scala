@@ -1,8 +1,10 @@
 package org.codingteam.icfpc2021.solver
 
-import org.codingteam.icfpc2021.{Figure, Point, Problem}
+import org.codingteam.icfpc2021.validator.SolutionValidator
+import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.math.{abs, sqrt}
 
 object DumbSolver {
@@ -95,5 +97,25 @@ object DumbSolver {
     } else {
       None
     }
+  }
+
+  def wobbleOne(problem: Problem, solution: Vector[Point], i: Int) : Seq[Vector[Point]] = {
+    val validator = new SolutionValidator(problem)
+    val newPos = new ListBuffer[Vector[Point]]()
+    val p = solution(i)
+    for (dx <- -2 to 2) {
+      for (dy <- -2 to 2) {
+        if (dx != 0 || dy != 0) {
+          val v = Point(p.x + dx, p.y + dy)
+          val verts = solution.updated(i, v)
+          val sol = Solution(verts, null)
+          if (validator.validateEdgeLength(sol, Some(i))) {
+            //println(f"Success: $p => $v")
+            newPos += verts
+          }
+        }
+      }
+    }
+    newPos.toSeq
   }
 }

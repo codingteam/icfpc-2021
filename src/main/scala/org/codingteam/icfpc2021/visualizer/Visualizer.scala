@@ -240,6 +240,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Move", moveTool, Some('e'))
 
     tb.add(makeAction("Mirror", () => foldSelectedIn()))
+    tb.add(makeAction("Wobble", () => wobbleSelected()))
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
@@ -321,6 +322,18 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       repaint()
       updateStatus()
     }
+  }
+
+  private def wobbleSelected(): Unit = {
+    for (index <- selectionTool.selectedFigureVertices) {
+      val res = DumbSolver.wobbleOne(problem, solution, index)
+      if (res.length >= 1) {
+        println("Move")
+        solution = res(0)
+      }
+    }
+    repaint()
+    updateStatus()
   }
 
   private def printSolution(): Unit = {

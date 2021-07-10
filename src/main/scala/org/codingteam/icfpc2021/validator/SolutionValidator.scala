@@ -83,9 +83,18 @@ class SolutionValidator(problem: Problem) {
     }
   }
 
-  def validateEdgeLength(solution: Solution): Boolean = {
+  def validateEdgeLength(solution: Solution, vertIndex: Option[Int] = None): Boolean = {
     problem.figure.edges forall { e =>
-      checkEdgeLength(solution, e) == Exact
+      vertIndex match {
+        case None => checkEdgeLength(solution, e) == Exact
+        case Some(idx) =>
+          if (e.vertex1 == idx || e.vertex2 == idx) {
+            checkEdgeLength(solution, e) == Exact
+          }  else {
+            true
+          }
+      }
+
     }
   }
 
