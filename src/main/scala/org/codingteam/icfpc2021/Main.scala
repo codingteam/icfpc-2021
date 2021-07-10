@@ -4,13 +4,19 @@ import org.codingteam.icfpc2021.rotation_solver.RotationSolver
 import org.codingteam.icfpc2021.submitter.{Dumper, Submitter}
 import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.visualizer.Visualizer
+import org.codingteam.icfpc2021.triangles.FindTriangles
 
 import java.nio.file.Path
 
 object Main extends App {
   args match {
+    case Array("find-triangles", path)  => FindTriangles.process(Path.of(path))
     case Array("rotation-solver", path) => RotationSolver.solve(Path.of(path))
-    case Array("validator", problemPath, solutionPath) => SolutionValidator.validateFile(Path.of(problemPath), Path.of(solutionPath))
+    case Array("validator", problemPath, solutionPath) =>
+      SolutionValidator.validateFile(
+        Path.of(problemPath),
+        Path.of(solutionPath),
+      )
     case Array("visualizer", path) => Visualizer.show(Path.of(path))
     case Array("submitter", apiKey, path) => Submitter.submit(apiKey, Path.of(path))
     case Array("submitter", apiKey) => Submitter.submit(apiKey, Path.of("solutions"))
@@ -19,7 +25,10 @@ object Main extends App {
     case Array("dumper-analyzer", directory) => Dumper.analyze(Path.of(directory))
     case Array("dumper-analyzer") => Dumper.analyze(Path.of("solutions"))
     case _ => println(
-      """Possible arguments:
+      println("""Possible arguments:
+        |
+        |find-triangles <problem.json>
+        |  Prints out a list of triangles in the figure (as triples of indices into figure.vertices).
         |
         |rotation-solver <problem.json>
         |  Solve problem by rotating the figure.
