@@ -43,6 +43,9 @@ class Translator(problem: Problem) {
   def toModelX(x: Int): BigInt = (x - shiftX) * scale2 / scale1 + minX
   def toModelY(y: Int): BigInt = (y - shiftY) * scale2 / scale1 + minY
 
+  def toModelDelta(x: Int, y: Int): Point = Point(toModelDelta(x), toModelDelta(y))
+  def toModelDelta(v: Int): BigInt = v * scale2 / scale1
+
   def holeScreenPolygon(): Polygon = new Polygon(
     problem.hole.map(p => toScreenX(p.x)).toArray,
     problem.hole.map(p => toScreenY(p.y)).toArray,

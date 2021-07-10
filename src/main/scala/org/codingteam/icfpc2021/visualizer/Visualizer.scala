@@ -13,8 +13,73 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   private val translator = new Translator(problem)
   private var solution = problem.figure.vertices
 
-  private var selection: Option[(java.awt.Point, java.awt.Point)] = None
-  private var selectedFigureVertices = new BitSet
+  trait Tool {
+    // TODO: decouple default implementations from childrens implementations
+    //       i.e. childs shouldn't call `super.something()`
+
+    var rect: Option[(java.awt.Point, java.awt.Point)] = None
+
+    def startDrag(e: MouseEvent): Unit = {
+      rect = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
+      vizRepaint()
+    }
+    def endDrag(): Unit = {
+      rect = None
+      vizRepaint()
+    }
+    def dragged(e: MouseEvent): Unit = {
+      rect foreach { sel =>
+        sel._2.setLocation(e.getX, e.getY)
+      }
+    }
+  }
+
+  class SelectionTool extends Tool {
+    var selectedFigureVertices = new BitSet
+
+    override def dragged(e: MouseEvent): Unit = {
+      super.dragged(e)
+      rect foreach { sel =>
+        val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
+        val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
+        val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
+
+        selectedFigureVertices.clear()
+        for((vert, i) <- solution.zipWithIndex) {
+          if (rect.contains(vert)) {
+            selectedFigureVertices.add(i)
+          }
+        }
+
+        vizRepaint()
+      }
+    }
+  }
+
+  class MoveTool extends Tool {
+    var prev = Point(0, 0)
+
+    override def startDrag(e: MouseEvent): Unit = {
+      super.startDrag(e)
+      prev = Point(0, 0)
+    }
+
+    override def dragged(e: MouseEvent): Unit = {
+      super.dragged(e)
+      rect foreach { sel =>
+        val curr = translator.toModelDelta(sel._2.x - sel._1.x, sel._2.y - sel._1.y)
+
+        if (curr != prev) {
+          moveSelected(curr - prev)
+        }
+        prev = curr
+      }
+    }
+  }
+
+  private val selectionTool = new SelectionTool
+  private val moveTool = new MoveTool
+  private var tool = new Tool() {}
 
   private lazy val mainPanel = {
     val p = new JPanel()
@@ -26,9 +91,9 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   private lazy val problemPanel = {
     val p = new JPanel() {
       override def paint(g: Graphics): Unit = {
+        super.paint(g)
         val g2 = g.asInstanceOf[Graphics2D]
         translator.setScreenDimensions(getWidth, getHeight)
-        g2.clearRect(0, 0, getWidth, getHeight)
         g2.draw(translator.holeScreenPolygon())
 
         g2.setColor(Color.GRAY)
@@ -37,14 +102,14 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
           g.drawString(String.valueOf(i), x, y)
         }
 
-        selection foreach { sel =>
+        selectionTool.rect foreach { sel =>
           val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
           val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
           g2.drawRect(x1, y1, x2 - x1, y2 - y1)
         }
 
         g2.setColor(Color.RED)
-        for (i <- selectedFigureVertices) {
+        for (i <- selectionTool.selectedFigureVertices) {
           val (x, y) = translator.toScreen(solution(i))
           g.fillOval(x - 4, y - 4, 8, 8)
         }
@@ -65,65 +130,55 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     }
     p.setDoubleBuffered(true)
     p.setPreferredSize(new Dimension(600, 400))
+
     p.addMouseListener(new MouseListener() {
       override def mouseClicked(me: MouseEvent): Unit = {
         println(translator.toModel(me.getX, me.getY))
       }
-
       override def mouseEntered(e: MouseEvent): Unit = {}
-
       override def mouseExited(e: MouseEvent): Unit = {}
-
-      override def mousePressed(e: MouseEvent): Unit = {
-        selection = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
-        p.repaint()
-      }
-
-      override def mouseReleased(e: MouseEvent): Unit = {
-        selection = None
-        p.repaint()
-      }
+      override def mousePressed(e: MouseEvent): Unit = tool.startDrag(e)
+      override def mouseReleased(e: MouseEvent): Unit = tool.endDrag()
     })
 
     p.addMouseMotionListener(new MouseMotionListener() {
-      override def mouseDragged(e: MouseEvent): Unit = {
-        selection foreach { sel =>
-          sel._2.setLocation(e.getX, e.getY)
-
-          val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
-          val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
-          val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
-
-          selectedFigureVertices.clear()
-          for((vert, i) <- solution.zipWithIndex) {
-            if (rect.contains(vert)) {
-              selectedFigureVertices.add(i)
-            }
-          }
-
-          p.repaint()
-        }
-      }
-
+      override def mouseDragged(e: MouseEvent): Unit = tool.dragged(e)
       override def mouseMoved(e: MouseEvent): Unit = {}
     })
-    p
 
+    p
   }
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
     tb.add(visualizer.makeAction("Test Action", () => println("Test action called")))
+
+    // Move
     tb.add(visualizer.makeAction("←", () => moveSelected(Point(-1, 0))))
     tb.add(visualizer.makeAction("→", () => moveSelected(Point(+1, 0))))
     tb.add(visualizer.makeAction("↑", () => moveSelected(Point(0, -1))))
     tb.add(visualizer.makeAction("↓", () => moveSelected(Point(0, +1))))
+
+    // Tools
+    val buttonGroup = new ButtonGroup();
+    def addTool(text: String, newTool: Tool): Unit = {
+      var button = new JToggleButton(text)
+      tb.add(button)
+      buttonGroup.add(button)
+      button.addActionListener(e => {
+        tool.endDrag()
+        tool = newTool
+      })
+    }
+    addTool("Select", selectionTool)
+    addTool("Move", moveTool)
+
     tb
   }
 
   private def moveSelected(delta: Point): Unit = {
     solution = solution.zipWithIndex.map { case (p, idx) =>
-      if (selectedFigureVertices.contains(idx)) p + delta else p
+      if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
     }
     problemPanel.repaint()
   }
@@ -133,6 +188,10 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     setLocationByPlatform(true)
     pack()
+  }
+
+  private def vizRepaint(): Unit = {
+    problemPanel.repaint()
   }
 
   init()
