@@ -13,7 +13,7 @@ object ForceBasedSolver {
     // Points outside the hole are trying to move inward
     for (i <- problem.figure.vertices.indices) {
       if (! problem.isPointInHole(solution.vertices(i))) {
-        forces(i) += (problem.holeCenter - problemVertices(i)) / 10
+        forces(i) += problem.holeCenter - vertices(i)
       }
     }
 
