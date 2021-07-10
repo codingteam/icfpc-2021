@@ -1,6 +1,7 @@
 package org.codingteam.icfpc2021.visualizer
 
-import org.codingteam.icfpc2021.{Json, Problem, Point, Rect}
+import org.codingteam.icfpc2021.{Json, Problem, Point, Rect, Solution}
+import org.codingteam.icfpc2021.validator.SolutionValidator
 
 import java.awt._
 import java.awt.event.{ActionEvent, MouseEvent, MouseListener, _}
@@ -151,7 +152,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
-    tb.add(visualizer.makeAction("Test Action", () => println("Test action called")))
+    tb.add(visualizer.makeAction("Print JSON", () => printSolution()))
+    tb.add(visualizer.makeAction("Validate", () => validateSolution()))
 
     // Move
     tb.add(visualizer.makeAction("←", () => moveSelected(Point(-1, 0))))
@@ -181,6 +183,21 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
     }
     problemPanel.repaint()
+  }
+
+  private def printSolution() : Unit = {
+    val sol = Solution(solution)
+    println(Json.serializeSolution(sol))
+  }
+
+  private def validateSolution() : Unit = {
+    val sol = Solution(solution)
+    val validator = new SolutionValidator(problem)
+    if (validator.validate(sol)) {
+      println("Ok")
+    } else {
+      println("Fail")
+    }
   }
 
   private def init(): Unit = {
