@@ -186,7 +186,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       }
     }
     p.setDoubleBuffered(true)
-    p.setPreferredSize(new Dimension(1920, 960))
+    p.setPreferredSize(new Dimension(1730, 960))
 
     p.addMouseListener(new MouseListener() {
       override def mouseClicked(me: MouseEvent): Unit = {
