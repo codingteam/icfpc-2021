@@ -1,6 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+"""
+=====
+USAGE:
+  PYTHON2:
+    sudo apt install python2-tk
+    python2 lightning_gui08.py problem1.json solution1.json
+  PYTHON3:
+    sudo apt install python3-tk
+    python3 lightning_gui08.py problem1.json solution1.json
+  PYPY (fastest):
+    sudo apt install pypy-tk
+    pypy lightning_gui08.py problem1.json solution1.json
+
+NB: specify path to "solution1.json" file EVEN IF IT DOES NOT EXIST YET.
+=====
+"""
+
 import sys, math, json
 
 #python3 compat
@@ -70,12 +87,17 @@ def line_in_hole(holepoints, p1, p2):
 		bx1,by1 = bx2,by2
 	return True
 
-def move_point( targetp, sourcep, move_speed ):
+def move_point( targetp, sourcep, move_speed, round_to_int = False ):
 	srcx, srcy = sourcep
 	tgtx, tgty = targetp
+	newx, newy = (1-move_speed)*srcx + move_speed*tgtx, (1-move_speed)*srcy + move_speed*tgty
+	if round_to_int:
+		newx = int(newx+.0001) if tgtx < srcx else int(newx+.9999)
+		newy = int(newy+.0001) if tgty < srcy else int(newy+.9999)
+		return newx, newy
 	if abs(tgtx-srcx)<0.5 and abs(tgty-srcy)<0.5:
 		return tgtx, tgty
-	return (1-move_speed)*srcx + move_speed*tgtx, (1-move_speed)*srcy + move_speed*tgty
+	return newx, newy
 
 #def dist_line_point( line, point ):
 #	x1,y1,x2,y2 = line
@@ -167,21 +189,42 @@ class Window:
 		self.holedLabel = Tk.Message(rightFrame, text="Out of hole", width=RIGHTWIDTH, anchor=Tk.W)
 		self.dislikesLabel = Tk.Message(rightFrame, text="Dislikes", width=RIGHTWIDTH, anchor=Tk.W)
 		self.origdislikesLabel = Tk.Message(rightFrame, text="", width=RIGHTWIDTH, anchor=Tk.W)
+		self.saveddislikesLabel = Tk.Message(rightFrame, text="", width=RIGHTWIDTH, anchor=Tk.W)
 
-		self.autounstretchVar = Tk.IntVar(value=1)
+		self.autounstretchVar = Tk.IntVar(value=0)
 		unstretchCheck = Tk.Checkbutton(rightFrame, text="Auto-Unstretch", variable=self.autounstretchVar, anchor=Tk.W)
+		self.guihint(unstretchCheck, "Auto-unstretch overstretched edges")
 		self.autostuffVar = Tk.IntVar(value=0)
 		stuffCheck = Tk.Checkbutton(rightFrame, text="Auto-Stuff", variable=self.autostuffVar, anchor=Tk.W)
+		self.guihint(stuffCheck, "Move outside figure points towards closest hole boundary")
 		self.autofillVar = Tk.IntVar(value=0)
 		fillCheck = Tk.Checkbutton(rightFrame, text="Auto-Fill", variable=self.autofillVar, anchor=Tk.W)
+		self.guihint(fillCheck, "Each hole vertext pulls closest figure vertex")
+
+		debugLabel = Tk.Message(rightFrame, text="Debug options", width=RIGHTWIDTH, anchor=Tk.W)
+		self.unstretchallVar = Tk.IntVar(value=0)
+		unstretchallCheck = Tk.Checkbutton(rightFrame, text="Unstretch all", variable=self.unstretchallVar, anchor=Tk.W)
+		self.guihint(unstretchallCheck, "Unstretch all edges, not just over/understretched ones (needs Auto-Unstretch)")
+		self.stickyholeVar = Tk.IntVar(value=1)
+		stickyholeCheck = Tk.Checkbutton(rightFrame, text="Sticky hole vertex", variable=self.stickyholeVar, anchor=Tk.W)
+		self.guihint(stickyholeCheck, "Don't unstretch figure vertex if it's in the hole vertex")
+		self.intunstretchVar = Tk.IntVar(value=0)
+		intunstretchCheck = Tk.Checkbutton(rightFrame, text="Integer unstretch", variable=self.intunstretchVar, anchor=Tk.W)
+		self.guihint(intunstretchCheck, "When auto-unstretching, round coords to integer (VERY UNSTABLE)")
 		self.intdragVar = Tk.IntVar(value=1)
 		intdragCheck = Tk.Checkbutton(rightFrame, text="Integer drag", variable=self.intdragVar, anchor=Tk.W)
+		self.guihint(intdragCheck, "Snap mousedragged vertex to integer coords")
 
 		mirrorButton = Tk.Button(rightFrame, text="Mirror", command=self.mirror_clicked)
+		self.guihint(mirrorButton, "Mirror the figure horizontally")
 		spreadButton = Tk.Button(rightFrame, text="Spread", command=self.spread_clicked)
+		self.guihint(spreadButton, "Spread all points (only useful with Auto-Unstretch)")
 		search1Button = Tk.Button(rightFrame, text="Search1", command=self.search1_clicked)
+		self.guihint(search1Button, "Find figure edges with length same as hole edge (almost useless)")
 		search2Button = Tk.Button(rightFrame, text="Search2", command=self.search2_clicked)
+		self.guihint(search2Button, "Find figure vertexes with edges matching hole edges (almost useless)")
 		roundButton = Tk.Button(rightFrame, text="Round to int", command=self.round_clicked)
+		self.guihint(roundButton, "Round all floating point coords to closest integer value")
 		self.outfnameVar = Tk.StringVar()
 		outfnameText = Tk.Entry(rightFrame, textvariable = self.outfnameVar)
 		saveButton = Tk.Button(rightFrame, text="Save", command=self.save_clicked)
@@ -198,9 +241,14 @@ class Window:
 		self.holedLabel.pack(side=Tk.TOP, fill=Tk.X)
 		self.dislikesLabel.pack(side=Tk.TOP, fill=Tk.X)
 		self.origdislikesLabel.pack(side=Tk.TOP, fill=Tk.X)
+		self.saveddislikesLabel.pack(side=Tk.TOP, fill=Tk.X)
 		unstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		stuffCheck.pack(side=Tk.TOP, fill=Tk.X)
 		fillCheck.pack(side=Tk.TOP, fill=Tk.X)
+		debugLabel.pack(side=Tk.TOP, fill=Tk.X)
+		unstretchallCheck.pack(side=Tk.TOP, fill=Tk.X)
+		stickyholeCheck.pack(side=Tk.TOP, fill=Tk.X)
+		intunstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		intdragCheck.pack(side=Tk.TOP, fill=Tk.X)
 		mirrorButton.pack(side=Tk.TOP, fill=Tk.X)
 		spreadButton.pack(side=Tk.TOP, fill=Tk.X)
@@ -239,6 +287,11 @@ class Window:
 		self.root.after(100, self.ontimer)
 		self.root.mainloop()
 
+	# gui shortcut - these two lines were used too often:
+	def guihint(self, guielem, text):
+		guielem.bind("<Enter>", lambda ev: self.status.configure(text=text) )
+		guielem.bind("<Leave>", lambda ev: self.status.configure(text="") )
+
 	def update_lines_and_stats(self):
 		srcp = self.problem['figure']['vertices']
 		# Check pose lines, update stats:
@@ -273,12 +326,17 @@ class Window:
 		self.holedLabel['foreground'] = "green" if stats_outofhole == 0 else "red"
 		self.dislikesLabel['text'] = "Dislikes: %d" % dislikes
 
-		if stats_overstretched == 0 and stats_outofhole == 0 and self.origdislikesLabel['text'] == "":
-			self.origdislikesLabel['text'] = "Orig.dislikes: %d" % dislikes
+		if self.origdislikesLabel['text'] == "":
+			if stats_overstretched == 0 and stats_outofhole == 0:
+				self.origdislikesLabel['text'] = "Orig.dislikes: %d" % dislikes
+			else:
+				self.origdislikesLabel['text'] = " " # some non-empty value - a mark that it's set
 
+		# Last dislikes (for "Save" button), negative, if the solution is not valid
+		self.last_dislikes_str = "" if stats_overstretched==0 and stats_outofhole==0 else "-"
+		self.last_dislikes_str += "%d" % dislikes
 		if self.solution_basefname:
-			sign = "" if stats_overstretched==0 and stats_outofhole==0 else "-"
-			self.outfnameVar.set(self.solution_basefname + ".%s%d" % (sign,dislikes) )
+			self.outfnameVar.set(self.solution_basefname + "." + self.last_dislikes_str )
 
 	# Drag vertex
 	def b1down(self, px, py):
@@ -337,19 +395,25 @@ class Window:
 	# Unstretch overstretched/understretched edges:
 	def unstretch_1step(self):
 		srcp = self.problem['figure']['vertices']
+		round_to_int = self.intunstretchVar.get()
+		dontmove_list = []
+		if self.stickyholeVar.get():
+			dontmove_list = set( (x,y) for x,y in self.problem['hole'] )
 		for p1,p2 in self.problem['figure']['edges']:
 			# check stretching
 			srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 			if dstd == 0: dstd = 0.1 # avoid zero division
 			e = dstd*1.0/srcd - 1
-			if True:#if abs(e)*1000000 > self.problem['epsilon']:
+			if abs(e)*1000000 > self.problem['epsilon'] or self.unstretchallVar.get():
 				x1,y1 = self.dstp[p1]
 				x2,y2 = self.dstp[p2]
 				mx,my = (x1+x2)/2.0, (y1+y2)/2.0
 				tx1, ty1 = mx+(x1-mx)*srcd/dstd, my+(y1-my)*srcd/dstd
 				tx2, ty2 = mx+(x2-mx)*srcd/dstd, my+(y2-my)*srcd/dstd
-				self.dstp[p1] = move_point( (tx1, ty1), (x1,y1), UNSTRETCH_SPEED )
-				self.dstp[p2] = move_point( (tx2, ty2), (x2,y2), UNSTRETCH_SPEED )
+				if (x1,y1) not in dontmove_list:
+					self.dstp[p1] = move_point( (tx1,ty1), (x1,y1), UNSTRETCH_SPEED, round_to_int )
+				if (x2,y2) not in dontmove_list:
+					self.dstp[p2] = move_point( (tx2,ty2), (x2,y2), UNSTRETCH_SPEED, round_to_int )
 
 	# Stuff elements that are outside of the figure into the figure
 	def stuff_1step(self):
@@ -468,6 +532,7 @@ class Window:
 
 	# Save current solution to a file, so we could load it later
 	def save_clicked(self):
+		self.saveddislikesLabel['text'] = "Saved dislikes: %s" % self.last_dislikes_str
 		f = open( self.outfnameVar.get(), "w" )
 		json.dump( {"vertices":self.dstp}, f )
 		f.close()
