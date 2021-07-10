@@ -7,7 +7,7 @@ import org.codingteam.icfpc2021.solver.DumbSolver
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
-import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
+import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener, KeyEvent, KeyListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.nio.file.{Files, Path}
 import javax.swing._
@@ -170,7 +170,10 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
       override def mouseExited(e: MouseEvent): Unit = {}
 
-      override def mousePressed(e: MouseEvent): Unit = tool.startDrag(e)
+      override def mousePressed(e: MouseEvent): Unit = {
+        p.requestFocus()
+        tool.startDrag(e)
+      }
 
       override def mouseReleased(e: MouseEvent): Unit = tool.endDrag()
     })
@@ -180,6 +183,22 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
       override def mouseMoved(e: MouseEvent): Unit = {}
     })
+
+    p.addKeyListener(new KeyListener() {
+      override def keyTyped(e: KeyEvent): Unit = {}
+      override def keyPressed(e: KeyEvent): Unit = {
+        e.getKeyCode match {
+          case KeyEvent.VK_LEFT => moveSelected(Point(-1, 0))
+          case KeyEvent.VK_RIGHT => moveSelected(Point(+1, 0))
+          case KeyEvent.VK_UP => moveSelected(Point(0, -1))
+          case KeyEvent.VK_DOWN => moveSelected(Point(0, +1))
+          case _ => {}
+        }
+      }
+      override def keyReleased(e: KeyEvent): Unit = {}
+    })
+
+    p.setFocusable(true)
 
     p
   }
@@ -202,12 +221,6 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Next file", () => moveToNextProblem(1)))
 
     tb.add(makeAction("Print JSON", () => printSolution()))
-
-    // Move
-    tb.add(makeAction("←", () => moveSelected(Point(-1, 0))))
-    tb.add(makeAction("→", () => moveSelected(Point(+1, 0))))
-    tb.add(makeAction("↑", () => moveSelected(Point(0, -1))))
-    tb.add(makeAction("↓", () => moveSelected(Point(0, +1))))
 
     // Tools
     val buttonGroup = new ButtonGroup()
