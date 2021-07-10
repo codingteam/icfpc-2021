@@ -9,7 +9,9 @@ import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.nio.file.{Files, Path}
 import javax.swing._
 import scala.collection.mutable
+import scala.language.implicitConversions
 import scala.swing.Graphics2D
+import scala.util.chaining._
 
 class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
@@ -25,12 +27,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
     def startDrag(e: MouseEvent): Unit = {
       rect = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
-      vizRepaint()
+      updateStatus()
     }
 
     def endDrag(): Unit = {
       rect = None
-      vizRepaint()
+      updateStatus()
     }
 
     def dragged(e: MouseEvent): Unit = {
@@ -57,7 +59,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
           }
         }
 
-        vizRepaint()
+        updateStatus()
       }
     }
   }
@@ -175,7 +177,6 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
     tb.add(makeAction("Print JSON", () => printSolution()))
-    tb.add(makeAction("Validate", () => validateSolution()))
 
     // Move
     tb.add(makeAction("←", () => moveSelected(Point(-1, 0))))
@@ -202,9 +203,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
     tb
   }
-  private lazy val solutionIsValidText = new JTextField()
 
-  private lazy val solutionDislikesText = new JTextField()
+  private lazy val solutionIsValidText =
+    new JTextField().tap(tf => tf.setColumns(5))
+
+  private lazy val solutionDislikesText =
+    new JTextField().tap(tf => tf.setColumns(5))
 
   private lazy val statusPanel = {
     val tb = new JToolBar()
@@ -212,8 +216,6 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     tb.add(solutionIsValidText)
     tb.add(new JLabel("Dislikes count:"))
     tb.add(solutionDislikesText)
-    // we need auto update?
-    tb.add(makeAction("Update", () => updateStatus(), Some('a')))
     tb
   }
 
@@ -227,13 +229,15 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
     solutionIsValidText.setText(valid.toString)
     solutionDislikesText.setText(dislikes.toString())
+
+    problemPanel.repaint()
   }
 
   private def moveSelected(delta: Point): Unit = {
     solution = solution.zipWithIndex.map { case (p, idx) =>
       if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
     }
-    problemPanel.repaint()
+    updateStatus()
   }
 
   private def printSolution(): Unit = {
@@ -241,25 +245,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     println(Json.serializeSolution(sol))
   }
 
-  private def validateSolution(): Unit = {
-    val sol = Solution(solution)
-    val validator = new SolutionValidator(problem)
-    if (validator.validate(sol)) {
-      println("Ok")
-    } else {
-      println("Fail")
-    }
-  }
-
   private def init(): Unit = {
     getContentPane.add(mainPanel)
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     setLocationByPlatform(true)
     pack()
-  }
-
-  private def vizRepaint(): Unit = {
-    problemPanel.repaint()
+    updateStatus()
   }
 
   init()
