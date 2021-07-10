@@ -10,7 +10,7 @@ import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 
 object DumbSolver {
-  def brezenhem(radius: BigInt) : List[Point] = {
+  def brezenhem(radius: BigInt) : Seq[Point] = {
     val result = new mutable.ListBuffer[Point]()
     val center = Point(0,0)
     val r2 = radius*radius
@@ -43,6 +43,6 @@ object DumbSolver {
         delta += 2*(x - y)
       }
     }
-    result.toList
+    result.toSeq
   }
 }
