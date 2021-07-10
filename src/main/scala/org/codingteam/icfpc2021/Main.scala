@@ -24,7 +24,7 @@ object Main extends App {
     case Array("dumper", sessionId, apiKey) => Dumper.dump(sessionId, apiKey, Path.of("solutions"))
     case Array("dumper-analyzer", directory) => Dumper.analyze(Path.of(directory))
     case Array("dumper-analyzer") => Dumper.analyze(Path.of("solutions"))
-    case _ => println(
+    case _ =>
       println("""Possible arguments:
         |
         |find-triangles <problem.json>
