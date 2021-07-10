@@ -17,7 +17,7 @@ class SOMSolver(problem: Problem,
     log(s"SOM solver, options=$options")
     val data = initialCoords.toArray
 
-    def currentSolution = Solution(data.toVector)
+    def currentSolution = Solution(data.toVector, null)
 
     val processedVertices = Array.ofDim[Boolean](problem.figure.vertices.size)
     val currentVertices = mutable.Buffer[Int]()

@@ -1,12 +1,11 @@
 package org.codingteam.icfpc2021.rotation_solver
 
-import java.nio.file.{Files, Path}
-
-import math.{sin, cos, Pi}
-
-import org.codingteam.icfpc2021.{Json, Point, Problem, Solution}
-import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.validator.SolutionValidator
+import org.codingteam.icfpc2021.{Json, Point, Solution}
+
+import java.nio.file.{Files, Path}
+import scala.math.{Pi, cos, sin}
 
 object RotationSolver {
   /// Rotate by given number of radians.
@@ -39,7 +38,7 @@ object RotationSolver {
       for (i <- 0 to steps) {
         val angle = start_rotation + i * rotation_window / steps
 
-        val solution = Solution(rotate_by(angle, problem.figure.vertices))
+        val solution = Solution(rotate_by(angle, problem.figure.vertices), null)
         
         val dislikes = evaluator.evaluate(solution)
         best match {
@@ -53,7 +52,7 @@ object RotationSolver {
 
       best match {
         case None => println("No solution found")
-        case Some((angle, dislikes, solution)) => {
+        case Some((angle, dislikes, solution)) =>
           println(s"It's best to rotate by $angle radians to get $dislikes dislikes")
           if (validator.validate(solution)) {
             println("And the best thing is, that solution is valid!")
@@ -64,7 +63,6 @@ object RotationSolver {
 
           rotation_window /= 2.0
           start_rotation = angle - (rotation_window / 2.0)
-        }
       }
     }
   }

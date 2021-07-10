@@ -137,7 +137,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
           val (x2, y2) = translator.toScreen(solution(edge.vertex2))
           val distance = solution(edge.vertex1) distanceSq solution(edge.vertex2)
           val origDistance = originalEdgeLengths(i)
-          val check = validator.checkEdgeLength(Solution(solution), edge)
+          val check = validator.checkEdgeLength(Solution(solution, null), edge)
           if (check == EdgeCheckResult.TooLong) {
             g2.setColor(Color.GREEN)
           } else if (check == EdgeCheckResult.TooShort) {
@@ -249,7 +249,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def updateStatus(): Unit = {
-    val sol = Solution(solution)
+    val sol = Solution(solution, null)
     val validator = new SolutionValidator(problem)
     val evaluator = new SolutionEvaluator(problem)
 
@@ -284,7 +284,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def printSolution(): Unit = {
-    val sol = Solution(solution)
+    val sol = Solution(solution, null)
     println(Json.serializeSolution(sol))
   }
 

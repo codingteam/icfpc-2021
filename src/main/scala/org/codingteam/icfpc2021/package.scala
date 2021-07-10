@@ -62,7 +62,9 @@ package object icfpc2021 {
     }
   }
 
-  case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure) {
+  case class BonusSpec(bonus: String, problem: Int, position: Point)
+
+  case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure, bonus: Vector[BonusSpec]) {
     lazy val holeRect: Rect = Rect(
       Point(hole.minBy(_.x).x, hole.minBy(_.y).y),
       Point(hole.maxBy(_.x).x, hole.maxBy(_.y).y))
@@ -75,7 +77,8 @@ package object icfpc2021 {
     val figureVerticesCount: Int = figure.vertices.size
   }
 
-  case class Solution(vertices: Vector[Point])
+  case class BonusUsage(bonus: String, problem: Int, edge: Option[Edge])
+  case class Solution(vertices: Vector[Point], bonuses: Vector[BonusUsage])
 
   /**
    * Границы 2D
