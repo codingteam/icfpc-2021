@@ -16,6 +16,8 @@ object Main extends App {
     case Array("submitter", apiKey) => Submitter.submit(apiKey, Path.of("solutions"))
     case Array("dumper", sessionId, apiKey, directory) => Dumper.dump(sessionId, apiKey, Path.of(directory))
     case Array("dumper", sessionId, apiKey) => Dumper.dump(sessionId, apiKey, Path.of("solutions"))
+    case Array("dumper-analyzer", directory) => Dumper.analyze(Path.of(directory))
+    case Array("dumper-analyzer") => Dumper.analyze(Path.of("solutions"))
     case _ => println(
       """Possible arguments:
         |
@@ -34,6 +36,10 @@ object Main extends App {
         |
         |dumper <session-id> <api-key> [solutions-directory]
         |  Dump current solution data to the solutions-directory. Requires session from browser cookies.
+        |  Default value of solutions-directory is "solutions".
+        |
+        |dumper-analyzer [solutions-directory]
+        |  Will analyze the data from dumper in the solutions-directory.
         |  Default value of solutions-directory is "solutions".
         |""".stripMargin)
   }

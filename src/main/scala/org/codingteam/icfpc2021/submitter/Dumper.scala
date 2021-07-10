@@ -33,4 +33,28 @@ object Dumper {
         Files.deleteIfExists(path)
     }
   }
+
+  def analyze(solutionsDir: Path): Unit = {
+    println(s"Analyzing data in directory $solutionsDir.")
+    println()
+
+    val files = Files.newDirectoryStream(solutionsDir)
+    try {
+      files.forEach(file => {
+        if (file.getFileName.toString.contains(".solutions.")) {
+          println(s"Analyzing file ${file.getFileName}.")
+          val solutions = DumperJson.deserialize(Files.readString(file))
+          val headSolution = solutions.head.solution
+          val minDislikes = solutions.map(_.solution).filter(_.dislikes != null).map(_.dislikes).min
+          if (headSolution.dislikes > minDislikes) {
+            println(s"  Problem: minimal dislike count $minDislikes is less than the currently uploaded solution (${headSolution.dislikes}).")
+          } else {
+            println("  OK.")
+          }
+        }
+      })
+    } finally {
+      files.close()
+    }
+  }
 }
