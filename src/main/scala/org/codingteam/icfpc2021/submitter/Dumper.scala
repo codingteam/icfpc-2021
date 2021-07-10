@@ -45,8 +45,10 @@ object Dumper {
           println(s"Analyzing file ${file.getFileName}.")
           val solutions = DumperJson.deserialize(Files.readString(file))
           val headSolution = solutions.head.solution
-          val minDislikes = solutions.map(_.solution).filter(_.dislikes != null).map(_.dislikes).min
-          if (headSolution.dislikes > minDislikes) {
+          val minDislikes = solutions.map(_.solution).filter(_.dislikes != null).map(_.dislikes).minOption
+          if (minDislikes.isEmpty) {
+            println("  OK (no valid solutions uploaded).")
+          } else if (headSolution.dislikes == null || headSolution.dislikes > minDislikes.get) {
             println(s"  Problem: minimal dislike count $minDislikes is less than the currently uploaded solution (${headSolution.dislikes}).")
           } else {
             println("  OK.")
