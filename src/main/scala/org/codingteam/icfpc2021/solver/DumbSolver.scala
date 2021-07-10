@@ -20,7 +20,7 @@ object DumbSolver {
     var error: Double = 0
     while (y >= x) {
       val p = Point(x, y)
-      if (abs((p distanceSq center).toDouble - r2) < epsilon) {
+      if (abs(sqrt((p distanceSq center).toDouble / r2) - 1) <= epsilon/1e6) {
         result += p
         result += Point(x, -y)
         result += Point(-x, y)
