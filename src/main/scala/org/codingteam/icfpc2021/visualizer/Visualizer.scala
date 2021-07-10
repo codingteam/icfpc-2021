@@ -1,12 +1,14 @@
 package org.codingteam.icfpc2021.visualizer
 
-import org.codingteam.icfpc2021.{Json, Point, Problem, Rect}
+import org.codingteam.icfpc2021.validator.SolutionValidator
+import org.codingteam.icfpc2021._
 
-import java.awt._
-import java.awt.event.{MouseEvent, MouseListener, _}
+import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
+import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.nio.file.{Files, Path}
 import javax.swing._
 import scala.collection.mutable
+import scala.swing.Graphics2D
 
 class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
@@ -158,7 +160,8 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
-    tb.add(makeAction("Test Action", () => println("Test action called")))
+    tb.add(makeAction("Print JSON", () => printSolution()))
+    tb.add(makeAction("Validate", () => validateSolution()))
 
     // Move
     tb.add(makeAction("←", () => moveSelected(Point(-1, 0))))
@@ -190,6 +193,21 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
     }
     problemPanel.repaint()
+  }
+
+  private def printSolution() : Unit = {
+    val sol = Solution(solution)
+    println(Json.serializeSolution(sol))
+  }
+
+  private def validateSolution() : Unit = {
+    val sol = Solution(solution)
+    val validator = new SolutionValidator(problem)
+    if (validator.validate(sol)) {
+      println("Ok")
+    } else {
+      println("Fail")
+    }
   }
 
   private def init(): Unit = {

@@ -37,4 +37,14 @@ object Json {
   def parseSolution(content: String): Solution = {
     mapper.readValue[Solution](content, classOf[Solution])
   }
+
+  def toJson(value : Point) : String = {
+    mapper.writeValueAsString((value.x, value.y))
+  }
+
+  def serializeSolution(solution: Solution): String = {
+    "{\"vertices\": [" +
+      (solution.vertices.map(v => f"[${v.x}, ${v.y}]")).mkString(", ") +
+      "]}"
+  }
 }
