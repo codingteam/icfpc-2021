@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2021.solver
 
-import org.codingteam.icfpc2021.Point
+import org.codingteam.icfpc2021.{Figure, Point, Problem}
 
 import scala.collection.mutable
 import scala.math.{abs, sqrt}
@@ -73,12 +73,27 @@ object DumbSolver {
   }
 
   def mirror(p: Point, neighbour1: Point, neighbour2: Point): Point = {
-    val dir = (neighbour2 - neighbour1).normalized()
+    val dp = neighbour2 - neighbour1
+    val dir = dp.normalized()
     val dp1 = (p - neighbour1).toPointD()
     val projectionLength = dir dot dp1
     val projection = dir * projectionLength
     val height = dp1 - projection
+    //println(s"M: $p r.t. $neighbour1 - $neighbour2: dp = $dp, p = $projection, h = $height")
 
-    (projection - height).trunc()
+    (neighbour1.toPointD() + projection - height).round()
+  }
+
+  def foldInOne(figure: Figure, i: Int) : Option[Figure] = {
+    val neighbours = figure.vertexNeighbours(i)
+    if (neighbours.length == 2) {
+      val p = figure.vertices(i)
+      val p1 = figure.vertices(neighbours(0))
+      val p2 = figure.vertices(neighbours(1))
+      val q = mirror(p, p1, p2)
+      Some(figure.copy(vertices = figure.vertices.updated(i, q)))
+    } else {
+      None
+    }
   }
 }

@@ -3,6 +3,7 @@ package org.codingteam.icfpc2021.visualizer
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
+import org.codingteam.icfpc2021.solver.DumbSolver
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
@@ -225,6 +226,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
 
+    tb.add(makeAction("Mirror", () => foldSelectedIn()))
+
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
     tb.add(makeAction("Random (full)", () => {
@@ -290,6 +293,21 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
     }
     updateStatus()
+  }
+
+  private def foldSelectedIn() : Unit = {
+    if (selectionTool.selectedFigureVertices.size == 1) {
+      for (index <- selectionTool.selectedFigureVertices) {
+        val figure = Figure(problem.figure.edges, solution)
+        DumbSolver.foldInOne(figure, index) match {
+          case Some(newFigure) =>
+            solution = newFigure.vertices
+          case None => ()
+        }
+      }
+      repaint()
+      updateStatus()
+    }
   }
 
   private def printSolution(): Unit = {
