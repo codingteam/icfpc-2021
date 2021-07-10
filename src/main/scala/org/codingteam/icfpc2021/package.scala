@@ -39,6 +39,21 @@ package object icfpc2021 {
       }
       neighbours map (_.toArray.toSeq)
     }
+
+    lazy val triangles: Vector[(Int, Int, Int)] = {
+      vertices.indices
+        .flatMap(idx =>
+          vertexNeighbours(idx)
+            .filter(_ > idx)
+            .flatMap(snd_idx =>
+              vertexNeighbours(idx)
+                .intersect(vertexNeighbours(snd_idx))
+                .filter(_ > snd_idx)
+                .map((idx, snd_idx, _)),
+            ),
+        )
+        .toVector
+    }
   }
 
   case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure) {
