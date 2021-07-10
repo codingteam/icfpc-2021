@@ -6,7 +6,7 @@ import java.awt._
 import java.awt.event.{MouseEvent, MouseListener, _}
 import java.nio.file.{Files, Path}
 import javax.swing._
-import scala.collection.mutable.BitSet
+import scala.collection.mutable
 
 class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
@@ -23,10 +23,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       rect = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
       vizRepaint()
     }
+
     def endDrag(): Unit = {
       rect = None
       vizRepaint()
     }
+
     def dragged(e: MouseEvent): Unit = {
       rect foreach { sel =>
         sel._2.setLocation(e.getX, e.getY)
@@ -35,7 +37,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   }
 
   class SelectionTool extends Tool {
-    var selectedFigureVertices = new BitSet
+    var selectedFigureVertices: mutable.BitSet = mutable.BitSet()
 
     override def dragged(e: MouseEvent): Unit = {
       super.dragged(e)
@@ -45,7 +47,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
 
         selectedFigureVertices.clear()
-        for((vert, i) <- solution.zipWithIndex) {
+        for ((vert, i) <- solution.zipWithIndex) {
           if (rect.contains(vert)) {
             selectedFigureVertices.add(i)
           }
@@ -57,7 +59,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
   }
 
   class MoveTool extends Tool {
-    var prev = Point(0, 0)
+    var prev: Point = Point(0, 0)
 
     override def startDrag(e: MouseEvent): Unit = {
       super.startDrag(e)
@@ -135,14 +137,19 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
       override def mouseClicked(me: MouseEvent): Unit = {
         println(translator.toModel(me.getX, me.getY))
       }
+
       override def mouseEntered(e: MouseEvent): Unit = {}
+
       override def mouseExited(e: MouseEvent): Unit = {}
+
       override def mousePressed(e: MouseEvent): Unit = tool.startDrag(e)
+
       override def mouseReleased(e: MouseEvent): Unit = tool.endDrag()
     })
 
     p.addMouseMotionListener(new MouseMotionListener() {
       override def mouseDragged(e: MouseEvent): Unit = tool.dragged(e)
+
       override def mouseMoved(e: MouseEvent): Unit = {}
     })
 
@@ -160,7 +167,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     tb.add(makeAction("↓", () => moveSelected(Point(0, +1))))
 
     // Tools
-    val buttonGroup = new ButtonGroup();
+    val buttonGroup = new ButtonGroup()
 
     def addTool(text: String, newTool: Tool): Unit = {
       var button = new JToggleButton(text)
@@ -171,6 +178,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
         tool = newTool
       })
     }
+
     addTool("Select", selectionTool)
     addTool("Move", moveTool)
 
