@@ -9,7 +9,8 @@ import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
 import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener, KeyEvent, KeyListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
+import java.io.File
 import javax.swing._
 import scala.collection.mutable
 import scala.language.implicitConversions
@@ -247,6 +248,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Prev file", () => moveToNextProblem(-1)))
     tb.add(makeAction("Next file", () => moveToNextProblem(1)))
 
+    tb.add(makeAction("Load solution", () => loadSolution()))
+
     tb.add(makeAction("Print JSON", () => printSolution()))
 
     // Tools
@@ -370,6 +373,21 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     }
     repaint()
     updateStatus()
+  }
+
+  private def loadSolution(): Unit = {
+    val cwd = System.getProperty("user.dir") + File.separator + "solutions"
+
+    val dialog = new JFileChooser
+    dialog.setCurrentDirectory(new File(cwd))
+    val option = dialog.showOpenDialog(this)
+    if (option == JFileChooser.APPROVE_OPTION) {
+      val path = cwd + File.separator + dialog.getSelectedFile.getName
+      val loadedSolution = Json.parseSolution(Files.readString(Paths.get(path)))
+      solution = loadedSolution.vertices
+      repaint()
+      updateStatus()
+    }
   }
 
   private def printSolution(): Unit = {
