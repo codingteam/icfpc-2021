@@ -8,19 +8,34 @@ import scala.util.Random
 class SOMOptimizer(problem: Problem,
                    options: SOMOptimizer.Options = SOMOptimizer.Options()) {
   lazy val validator = new SolutionValidator(problem)
+  val rnd = new Random()
 
   def optimize(initialCoords: IndexedSeq[Point] = problem.figure.vertices): Option[Solution] = {
     val data = initialCoords.toArray
 
     def currentSolution = Solution(data.toVector)
     // TODO: implement this.
+    for (t <- 0 until options.stepCount) {
+      val xt = problem.hole(rnd.nextInt(problem.hole.size))
+      val tf = (options.stepCount - t).toDouble / options.stepCount
+      val alpha = options.startAlpha * tf
+      val sigma = options.startSigma * tf
+      // Move toward to hole points.
+      val (nearestPoint, nearestInd) = data.view.zipWithIndex.minBy(_._1 distanceSq xt)
+      //      val hci = alpha * math.exp(-(xt distanceSq neighbour).toDouble / (2 * sigma * sigma))
 
-    Some(currentSolution).filter(validator.validate)
+      // Move to correct edges.
+
+      // Move to minimize out of hole square (?).
+    }
+    Some(currentSolution)
   }
 }
 
 object SOMOptimizer {
-  case class Options(n: Integer = 1)
+  case class Options(stepCount: Integer = 100000,
+                     startSigma: Double = 1.0,
+                     startAlpha: Double = 0.1)
 
   val rnd = new Random
 

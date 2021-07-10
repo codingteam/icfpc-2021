@@ -1,5 +1,7 @@
 package org.codingteam
 
+import scala.collection.mutable
+
 package object icfpc2021 {
 
   case class Point(x: BigInt, y: BigInt) {
@@ -28,7 +30,16 @@ package object icfpc2021 {
 
   case class Polygon(vertexes: Vector[Int])
 
-  case class Figure(edges: Vector[Edge], vertices: Vector[Point])
+  case class Figure(edges: Vector[Edge], vertices: Vector[Point]) {
+    lazy val vertexNeighbours: Int => Seq[Int] = {
+      val neighbours = Array.fill(vertices.size)(mutable.Set[Int]())
+      for (Edge(v1, v2) <- edges) {
+        neighbours(v1) += v2
+        neighbours(v2) += v1
+      }
+      neighbours map (_.toArray.toSeq)
+    }
+  }
 
   case class Problem(hole: Vector[Point], epsilon: BigInt, figure: Figure) {
     lazy val holeRect: Rect = Rect(

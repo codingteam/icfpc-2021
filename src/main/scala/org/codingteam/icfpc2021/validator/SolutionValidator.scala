@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2021.validator
 
-import org.codingteam.icfpc2021.{Json, Point, Problem, Solution, Edge}
+import org.codingteam.icfpc2021._
 
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -11,7 +11,8 @@ object EdgeCheckResult extends Enumeration {
   type EdgeCheckResult = Value
   val TooShort, Exact, TooLong = Value
 }
-import EdgeCheckResult._
+
+import org.codingteam.icfpc2021.validator.EdgeCheckResult._
 
 class SolutionValidator(problem: Problem) {
   private val ClearColor: Color = Color.BLACK
@@ -61,10 +62,10 @@ class SolutionValidator(problem: Problem) {
 
   def validate(solution: Solution): Boolean = {
     require(solution.vertices.size == problem.figure.vertices.size, "Wrong vertices array size")
-    validateEdgeLength(solution) && validateHole(solution)
+    validateEdgeLength(solution) && !hasPointsOutsideOfImage(solution) && validateHole(solution)
   }
 
-  def checkEdgeLength(solution: Solution, e: Edge) : EdgeCheckResult = {
+  def checkEdgeLength(solution: Solution, e: Edge): EdgeCheckResult = {
     val K = BigInt(1000000)
     val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
     val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
@@ -88,9 +89,17 @@ class SolutionValidator(problem: Problem) {
     }
   }
 
-  private def pointIsOutsideImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
+  def hasPointsOutsideOfImage(solution: Solution): Boolean = {
+    problem.figure.edges exists { e =>
+      val v1 = pointToImageCoord(solution.vertices(e.vertex1))
+      val v2 = pointToImageCoord(solution.vertices(e.vertex2))
+      pointIsOutsideOfImage(v1) || pointIsOutsideOfImage(v2)
+    }
+  }
 
-  def validateHole(solution: Solution): Boolean = {
+  private def pointIsOutsideOfImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
+
+  private def drawSolutionToFigure(solution: Solution): Unit = {
     val g2 = figureImage.getGraphics.asInstanceOf[Graphics2D]
     g2.setColor(ClearColor)
     g2.fillRect(0, 0, imgSizeX, imgSizeY)
@@ -98,11 +107,13 @@ class SolutionValidator(problem: Problem) {
     for (e <- problem.figure.edges) {
       val v1 = pointToImageCoord(solution.vertices(e.vertex1))
       val v2 = pointToImageCoord(solution.vertices(e.vertex2))
-      if (pointIsOutsideImage(v1) || pointIsOutsideImage(v2))
-        return false
       g2.drawLine(v1.x.toInt, v1.y.toInt, v2.x.toInt, v2.y.toInt)
     }
     figureImage.getRGB(0, 0, imgSizeX, imgSizeY, figureImageArray, 0, imgSizeX)
+  }
+
+  def validateHole(solution: Solution): Boolean = {
+    drawSolutionToFigure(solution)
     // compare raster arrays.
     val clearColorRGB = ClearColor.getRGB
     for (i <- figureImageArray.indices) {
@@ -110,6 +121,23 @@ class SolutionValidator(problem: Problem) {
         return false
     }
     true
+  }
+
+  /**
+   * Draw solution and return outside-hole pixels count.
+   * Edges (not filled polygons) are drawn.
+   * Points outside of image aren't counted.
+   *
+   * @param solution solution to check.
+   * @return inaccurate pixel count.
+   */
+  def getPixelCountOutsideHole(solution: Solution): Int = {
+    drawSolutionToFigure(solution)
+    // compare raster arrays.
+    val clearColorRGB = ClearColor.getRGB
+    figureImageArray.indices count { i =>
+      figureImageArray(i) != clearColorRGB && holeImageArray(i) == clearColorRGB
+    }
   }
 
 }
