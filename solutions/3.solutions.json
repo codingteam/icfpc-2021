@@ -1,0 +1,15 @@
+[ {
+  "id" : "0cfeebf8-2d2d-4346-a1ef-1295facf171f",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 1475,
+    "error" : null
+  }
+}, {
+  "id" : "f59dde3f-994d-4402-b709-77465d23b82d",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "parsing Integer failed, unexpected floating number 65.608231111994"
+  }
+} ]
