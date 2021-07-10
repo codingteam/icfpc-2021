@@ -2,6 +2,7 @@ package org.codingteam.icfpc2021.visualizer
 
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
 import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
@@ -101,6 +102,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     p.add(problemPanel, BorderLayout.CENTER)
     p.add(buttonsPanel, BorderLayout.NORTH)
     p.add(statusPanel, BorderLayout.SOUTH)
+    p.add(somOptionsPanel, BorderLayout.EAST)
     p
   }
   private lazy val problemPanel = {
@@ -222,6 +224,12 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
 
+    tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
+    tb.add(makeAction("Random (full)", () => {
+      solution = SOMSolver.randomInitialCoords(problem).toVector
+      repaint()
+      updateStatus()
+    }))
     tb
   }
 
@@ -252,6 +260,20 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     solutionDislikesText.setText(dislikes.toString())
 
     problemPanel.repaint()
+  }
+
+  private lazy val somOptionsPanel = new SOMSolverOptionsPanel
+
+  private def runSOMSolver(): Unit = {
+    val options = somOptionsPanel.options
+    val solver = new SOMSolver(problem, options)
+    val init = solution
+    val result = solver.optimize(init)
+    result foreach { s =>
+      solution = s.vertices
+      repaint()
+      updateStatus()
+    }
   }
 
   private def moveSelected(delta: Point): Unit = {

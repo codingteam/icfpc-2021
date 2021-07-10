@@ -11,9 +11,15 @@ package object icfpc2021 {
 
     def -(other: Point): Point = Point(this.x - other.x, this.y - other.y)
 
+    def *(k: Double): Point = Point(BigInt((this.x.toDouble * k).toLong), BigInt((this.y.toDouble * k).toLong))
+
     def distanceSq(other: Point): BigInt = {
       val r = this - other
       r.x * r.x + r.y * r.y
+    }
+
+    def moveTowards(target: Point, distanceK: Double): Point = {
+      this + (target - this) * distanceK
     }
   }
 

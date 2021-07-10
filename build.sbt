@@ -12,3 +12,5 @@ libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.4"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.3"
 libraryDependencies += "org.jsoup" % "jsoup" % "1.13.1"
+
+fork := true
