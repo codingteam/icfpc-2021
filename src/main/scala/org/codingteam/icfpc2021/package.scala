@@ -224,6 +224,18 @@ package object icfpc2021 {
       // the function returns Unit
       holeRect.min
     }
+
+    /** Distance range squared units.
+     *
+     *  Given an squared distance `distSq`, return allowed square distange range
+     *  multiplied by 1000000.
+     */
+    def distRangeSqUnits(distSq: BigInt): (BigInt, BigInt) =
+      (distSq * (1000000 - epsilon),
+       distSq * (1000000 + epsilon))
+
+    def edgeDistRangeSqUnits(i: Int, j: Int): (BigInt, BigInt) =
+      distRangeSqUnits(figure.vertices(i).distanceSq(figure.vertices(j)))
   }
 
   case class BonusUsage(bonus: String, problem: Int, edge: Option[Edge])

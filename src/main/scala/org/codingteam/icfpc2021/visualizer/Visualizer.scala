@@ -98,6 +98,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   private val moveTool = new MoveTool
   private var tool = new Tool() {}
 
+  private var guidesMode = "no"
+
   private lazy val mainPanel = {
     val p = new JPanel()
     p.setLayout(new BorderLayout())
@@ -131,6 +133,31 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
         for (i <- selectionTool.selectedFigureVertices) {
           val (x, y) = translator.toScreen(solution(i))
           g.fillOval(x - 4, y - 4, 8, 8)
+        }
+
+        def drawGuide(from: Int, to: Int): Unit = {
+          val pFrom = translator.toScreen(solution(from))
+          val pTo = translator.toScreen(solution(to))
+          val range = problem.edgeDistRangeSqUnits(from, to)
+          drawArc(g2, pFrom, pTo,
+            translator.sqUnitsToScreen(range._1).toInt,
+            translator.sqUnitsToScreen(range._2).toInt)
+        }
+
+        guidesMode match {
+          case "no" => {}
+          case "sel" =>
+            for (i <- selectionTool.selectedFigureVertices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(i, j)
+          case "adj" =>
+            for (i <- selectionTool.selectedFigureVertices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(j, i)
+          case "all" =>
+            for (i <- problem.figure.vertices.indices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(i, j)
         }
 
         val validator = new SolutionValidator(problem)
@@ -235,6 +262,15 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
         tool = newTool
       })
     }
+
+    tb.add({
+      val cb = new JComboBox(Array("no", "sel", "adj", "all"))
+      cb.addActionListener(e => {
+        guidesMode = cb.getSelectedItem().asInstanceOf[String]
+        repaint()
+      })
+    cb
+    })
 
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
