@@ -13,6 +13,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
   private val translator = new Translator(problem)
   private var solution = problem.figure.vertices
+  private val originalEdgeLengths = problem.figure.edges.map(e => solution(e.vertex1) distanceSq solution(e.vertex2))
 
   trait Tool {
     // TODO: decouple default implementations from childrens implementations
@@ -115,10 +116,19 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
           g.fillOval(x - 4, y - 4, 8, 8)
         }
 
-        g2.setColor(Color.RED)
-        for (edge <- problem.figure.edges) {
+        for ((edge, i) <- problem.figure.edges.zipWithIndex) {
           val (x1, y1) = translator.toScreen(solution(edge.vertex1))
           val (x2, y2) = translator.toScreen(solution(edge.vertex2))
+          val distance = solution(edge.vertex1) distanceSq solution(edge.vertex2)
+          val origDistance = originalEdgeLengths(i)
+          if (distance > origDistance) {
+            g2.setColor(Color.GREEN)
+          } else if (distance < origDistance) {
+            g2.setColor(Color.BLUE)
+          } else {
+            g2.setColor(Color.RED)
+          }
+
           g.drawLine(x1, y1, x2, y2)
         }
 
