@@ -1,6 +1,11 @@
 package org.codingteam.icfpc2021.submitter
 
+import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.validator.SolutionValidator
+import org.codingteam.icfpc2021.{Json, Solution}
+
 import java.net.URI
+import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.{HttpClient, HttpRequest}
 import java.nio.file.{Files, Path}
@@ -39,19 +44,85 @@ object Submitter {
     SubmitterJson.readSolution(client.send(request, BodyHandlers.ofString()).body())
   }
 
-  private def processSolutionDirectory(apiKey: String, path: Path): Unit = {
-    val files = Files.newDirectoryStream(path)
+  def dislikesOfLastSolution(solutionsDir: Path, problemId: String): BigInt = {
+    val problemJsonFile = solutionsDir.resolve(s"$problemId.solutions.json")
+    if (!Files.exists(problemJsonFile)) {
+      println("  No solutions file, no existing solution known.")
+      return null
+    }
+
+    val content = Files.readString(problemJsonFile)
+    val lastSolution = DumperJson.deserialize(content).head.solution
+    if (lastSolution.error != null) {
+      println("  Last known solution errored.")
+      return null
+    }
+
+    lastSolution.dislikes
+  }
+
+  private def uploadSolution(solutionsDir: Path, client: HttpClient, apiKey: String, problemId: String, solution: Solution, dislikes: BigInt): Unit = {
+    println("  Sending solution to server.")
+
+    val request = httpRequest(apiKey)
+      .uri(URI.create(s"$apiAddress/api/problems/$problemId/solutions"))
+      .POST(BodyPublishers.ofString(Json.serializeSolution(solution)))
+      .build()
+
+    val response = client.send(request, BodyHandlers.ofString())
+    println(s"  Result: ${response.statusCode()}.")
+
+    val responseBody = response.body()
+    println(s"  Response body: $responseBody.")
+
+    val solutionId = SubmitterJson.readPost(responseBody).id
+    println(s"  Solution id: $solutionId.")
+
+    if (response.statusCode() == 200) {
+      val solutionsFile = solutionsDir.resolve(s"$problemId.solutions.json")
+      val solutions = DumperJson.deserialize(Files.readString(solutionsFile))
+      val newSolutions = DumperSolution(solutionId, SolutionResponse("JUST_SENT", dislikes, null)) +: solutions
+      Files.writeString(solutionsFile, DumperJson.serialize(newSolutions))
+    }
+  }
+
+  private def processSolutionDirectory(apiKey: String, solutionsDir: Path): Unit = {
+    val files = Files.newDirectoryStream(solutionsDir)
     try {
-      println(s"Processing directory $path")
+      val problemsDir = solutionsDir.resolve("../problems")
+      println(s"Processing directory $solutionsDir")
+      println(s"Problems dir: $problemsDir")
+      println()
+
       val client = httpClient()
 
       files.forEach(file => {
-        if (file.toString.endsWith(".json")) {
-          println(s"Processing file ${file.getFileName}")
-          val problemId = file.getFileName.toString.replaceFirst("\\.[^.]$", "")
-          println(s"  Processing problem $problemId")
-//          val status = getProblemSolution(client, apiKey, problemId)
-//          println(s"  Current problem status: $status")
+        try {
+          val fileName = file.getFileName
+          if (fileName.toString.contains(".json") && !fileName.toString.contains("solutions")) {
+            println(s"Processing file $fileName")
+            val problemId = fileName.toString.replaceFirst("\\.json.*$", "")
+            println(s"  Processing problem $problemId.")
+
+            val problem = Json.parseProblem(Files.readString(problemsDir.resolve(s"$problemId.json")))
+            val solution = Json.parseSolution(Files.readString(file))
+
+            if (new SolutionValidator(problem).validate(solution)) {
+              println("  Local solution valid.")
+              val localDislikes = new SolutionEvaluator(problem).evaluate(solution)
+              val serverDislikes = dislikesOfLastSolution(solutionsDir, problemId)
+              println(s"  Local dislikes: $localDislikes, server dislikes: $serverDislikes.")
+              if (serverDislikes == null || localDislikes < serverDislikes) {
+                uploadSolution(solutionsDir, client, apiKey, problemId, solution, localDislikes)
+              }
+            } else {
+              println("  Local solution invalid.")
+            }
+          }
+        } catch {
+          case e: Throwable =>
+            System.err.println(e)
+            e.printStackTrace(System.err)
         }
       })
     } finally {

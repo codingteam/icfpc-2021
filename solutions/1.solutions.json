@@ -1,8 +1,15 @@
 [ {
+  "id" : "1",
+  "solution" : {
+    "state" : "JUST_SENT",
+    "dislikes" : 663,
+    "error" : null
+  }
+}, {
   "id" : "df5ad8d8-dde3-41d3-928b-507bf4ffa08a",
   "solution" : {
     "state" : "VALID",
-    "dislikes" : 663,
+    "dislikes" : 664,
     "error" : null
   }
 }, {
