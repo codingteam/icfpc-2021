@@ -98,6 +98,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   private val moveTool = new MoveTool
   private var tool = new Tool() {}
 
+  private var guidesMode = "no"
+
   private lazy val mainPanel = {
     val p = new JPanel()
     p.setLayout(new BorderLayout())
@@ -133,6 +135,31 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
           g.fillOval(x - 4, y - 4, 8, 8)
         }
 
+        def drawGuide(from: Int, to: Int): Unit = {
+          val pFrom = translator.toScreen(solution(from))
+          val pTo = translator.toScreen(solution(to))
+          val range = problem.edgeDistRangeSqUnits(from, to)
+          drawArc(g2, pFrom, pTo,
+            translator.sqUnitsToScreen(range._1).toInt,
+            translator.sqUnitsToScreen(range._2).toInt)
+        }
+
+        guidesMode match {
+          case "no" => {}
+          case "sel" =>
+            for (i <- selectionTool.selectedFigureVertices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(i, j)
+          case "adj" =>
+            for (i <- selectionTool.selectedFigureVertices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(j, i)
+          case "all" =>
+            for (i <- problem.figure.vertices.indices)
+              for (j <- problem.figure.vertexNeighbours(i))
+                drawGuide(i, j)
+        }
+
         val validator = new SolutionValidator(problem)
         for ((edge, i) <- problem.figure.edges.zipWithIndex) {
           val (x1, y1) = translator.toScreen(solution(edge.vertex1))
@@ -159,7 +186,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       }
     }
     p.setDoubleBuffered(true)
-    p.setPreferredSize(new Dimension(1920, 960))
+    p.setPreferredSize(new Dimension(1730, 960))
 
     p.addMouseListener(new MouseListener() {
       override def mouseClicked(me: MouseEvent): Unit = {
@@ -236,6 +263,15 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       })
     }
 
+    tb.add({
+      val cb = new JComboBox(Array("no", "sel", "adj", "all"))
+      cb.addActionListener(e => {
+        guidesMode = cb.getSelectedItem().asInstanceOf[String]
+        repaint()
+      })
+    cb
+    })
+
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
 
@@ -296,7 +332,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def runForceSolver(): Unit = {
-    val result = ForceBasedSolver.stepForward(problem, Solution(solution, null))
+    val result = ForceBasedSolver.stepForward(problem, Solution(solution, null), steps=100)
     solution = result.vertices
     repaint()
     updateStatus()

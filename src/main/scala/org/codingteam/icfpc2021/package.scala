@@ -223,19 +223,30 @@ package object icfpc2021 {
 
       (shiftX, shiftY, scaleX, scaleY, imgSizeX, imgSizeY)
     }
-    private lazy val holeImageArray = {
+    private lazy val (holeImageArray, borderImageArray) = {
       require(hole.nonEmpty, "Hole points list must be not empty")
-      val holeImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
-      val g2 = holeImage.getGraphics.asInstanceOf[Graphics2D]
-      g2.setColor(ClearColor)
-      g2.fillRect(0, 0, imgSizeX, imgSizeY)
+
       val (holeXs, holeYs, holeLength) = splitPointsIntoCoords(hole map pointToImageCoord)
-      g2.setColor(FillColor)
-      g2.drawPolygon(holeXs, holeYs, holeLength)
-      g2.fillPolygon(holeXs, holeYs, holeLength)
+
+      val borderImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+      val borderG2 = borderImage.getGraphics.asInstanceOf[Graphics2D]
+      borderG2.setColor(ClearColor)
+      borderG2.fillRect(0, 0, imgSizeX, imgSizeY)
+      borderG2.setColor(FillColor)
+      borderG2.drawPolygon(holeXs, holeYs, holeLength)
+      val borderImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
+      borderImage.getRGB(0, 0, imgSizeX, imgSizeY, borderImageArray, 0, imgSizeX)
+
+      val holeImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+      val holeG2 = holeImage.getGraphics.asInstanceOf[Graphics2D]
+      holeG2.setColor(ClearColor)
+      holeG2.fillRect(0, 0, imgSizeX, imgSizeY)
+      holeG2.setColor(FillColor)
+      holeG2.fillPolygon(holeXs, holeYs, holeLength)
       val holeImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
       holeImage.getRGB(0, 0, imgSizeX, imgSizeY, holeImageArray, 0, imgSizeX)
-      holeImageArray
+
+      (holeImageArray, borderImageArray)
     }
 
     private def pointToImageCoord(p: Point): Point = {
@@ -251,7 +262,7 @@ package object icfpc2021 {
     def isPointInHole(point: Point): Boolean = {
       val imgPoint = pointToImageCoord(point)
       val i = (imgPoint.x + imgPoint.y * imgSizeX).toInt
-      !pointIsOutsideOfImage(point) && (holeImageArray(i) == FillColor.getRGB)
+      !pointIsOutsideOfImage(point) && (holeImageArray(i) != ClearColor.getRGB || borderImageArray(i) != ClearColor.getRGB)
     }
 
     def randomPointInHole(): Point = {
@@ -267,6 +278,66 @@ package object icfpc2021 {
       // This will never be reached, but without this line Scala complains that
       // the function returns Unit
       holeRect.min
+    }
+
+    /** Distance range squared units.
+     *
+     *  Given an squared distance `distSq`, return allowed square distange range
+     *  multiplied by 1000000.
+     */
+    def distRangeSqUnits(distSq: BigInt): (BigInt, BigInt) =
+      (distSq * (1000000 - epsilon),
+       distSq * (1000000 + epsilon))
+
+    def edgeDistRangeSqUnits(i: Int, j: Int): (BigInt, BigInt) =
+      distRangeSqUnits(figure.vertices(i).distanceSq(figure.vertices(j)))
+
+    private def drawSolutionToFigure(solution: Solution): Array[Int] = {
+      require(hole.nonEmpty, "Hole points list must be not empty")
+      val figureImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+      val figureImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
+
+      val g2 = figureImage.getGraphics.asInstanceOf[Graphics2D]
+      g2.setColor(ClearColor)
+      g2.fillRect(0, 0, imgSizeX, imgSizeY)
+      g2.setColor(FillColor)
+      for (e <- figure.edges) {
+        val v1 = pointToImageCoord(solution.vertices(e.vertex1))
+        val v2 = pointToImageCoord(solution.vertices(e.vertex2))
+        g2.drawLine(v1.x.toInt, v1.y.toInt, v2.x.toInt, v2.y.toInt)
+      }
+      figureImage.getRGB(0, 0, imgSizeX, imgSizeY, figureImageArray, 0, imgSizeX)
+
+      figureImageArray
+    }
+
+    /// All the points at which the figure intersects with the hole's border.
+    ///
+    /// Because we're using a raster, where each pixel can represent multiple
+    //points of the original plane, we're returning a set of points one of
+    //which is the point of intersection.
+    def intersectionsWithHoleBorder(solution: Solution): Set[Set[Point]] = {
+      val figureImageArray = drawSolutionToFigure(solution)
+
+      val clearColorRGB = ClearColor.getRGB
+      val fillColorRGB = FillColor.getRGB
+      (for (i <- figureImageArray.indices) yield {
+        if (figureImageArray(i) != clearColorRGB && borderImageArray(i) == fillColorRGB) {
+          val imgY = i / imgSizeX
+          val imgX = i - imgY * imgSizeX
+
+          val expansionX = (1 / scaleX).ceil.toInt - 1
+          val expansionY = (1 / scaleY).ceil.toInt - 1
+          val result = (-expansionX to expansionX).flatMap(dx =>
+            (-expansionY to expansionY).map(dy =>
+              Point(
+                BigInt((imgX.toDouble / scaleX).toLong) + shiftX + dx,
+                BigInt((imgY.toDouble / scaleY).toLong) + shiftY + dy))).toSet
+          result
+        } else {
+          Set[Point]()
+        }
+      }).filter(! _.isEmpty).toSet
     }
   }
 
