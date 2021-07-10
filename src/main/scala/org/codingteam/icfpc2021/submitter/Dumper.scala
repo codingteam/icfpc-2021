@@ -30,7 +30,7 @@ object Dumper {
         Files.writeString(path, results)
       }
       else
-        Files.delete(path)
+        Files.deleteIfExists(path)
     }
   }
 }

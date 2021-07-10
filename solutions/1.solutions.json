@@ -1,7 +1,7 @@
 [ {
-  "id" : "1",
+  "id" : "3c705a7a-a1a6-4f0a-8047-c04b84864f27",
   "solution" : {
-    "state" : "JUST_SENT",
+    "state" : "VALID",
     "dislikes" : 663,
     "error" : null
   }
@@ -9,7 +9,7 @@
   "id" : "df5ad8d8-dde3-41d3-928b-507bf4ffa08a",
   "solution" : {
     "state" : "VALID",
-    "dislikes" : 664,
+    "dislikes" : 663,
     "error" : null
   }
 }, {
@@ -23,7 +23,7 @@
   "id" : "30799fb7-b82a-4753-98f7-69e6ceb3bed1",
   "solution" : {
     "state" : "INVALID",
-    "dislikes" : 0,
+    "dislikes" : null,
     "error" : "Edge between (4,1) has an invalid length: original: 425, pose: 754, max epsilon: 150000"
   }
 }, {
@@ -37,7 +37,7 @@
   "id" : "44cbde5f-142b-4f46-aad4-7cc287ea770b",
   "solution" : {
     "state" : "INVALID",
-    "dislikes" : 0,
+    "dislikes" : null,
     "error" : "bad JSON"
   }
 } ]

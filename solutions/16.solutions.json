@@ -16,7 +16,7 @@
   "id" : "1a068c28-3988-42d3-9665-78e04aacaa0a",
   "solution" : {
     "state" : "INVALID",
-    "dislikes" : 0,
+    "dislikes" : null,
     "error" : "bad JSON"
   }
 } ]

@@ -16,7 +16,7 @@
   "id" : "41d40b10-7701-4863-b32f-5b864247365d",
   "solution" : {
     "state" : "INVALID",
-    "dislikes" : 0,
+    "dislikes" : null,
     "error" : "The point at (0,0) is not inside the hole"
   }
 } ]
