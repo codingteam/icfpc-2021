@@ -1,0 +1,22 @@
+[ {
+  "id" : "330d401c-3ec4-40f3-8165-ee4401c51001",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null
+  }
+}, {
+  "id" : "4f621162-8140-4512-bc26-3a193e6b3bdf",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 550,
+    "error" : null
+  }
+}, {
+  "id" : "1a068c28-3988-42d3-9665-78e04aacaa0a",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : 0,
+    "error" : "bad JSON"
+  }
+} ]

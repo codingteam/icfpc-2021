@@ -1,0 +1,22 @@
+[ {
+  "id" : "10160d32-f9bd-4f8c-959a-6301cf44fc0f",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null
+  }
+}, {
+  "id" : "40217b40-6a24-4db3-a20c-97fb02ac5372",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null
+  }
+}, {
+  "id" : "41d40b10-7701-4863-b32f-5b864247365d",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : 0,
+    "error" : "The point at (0,0) is not inside the hole"
+  }
+} ]

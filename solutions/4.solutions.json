@@ -1,0 +1,15 @@
+[ {
+  "id" : "e958425f-b53c-476e-b50b-462ca6da5d95",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null
+  }
+}, {
+  "id" : "c3337d21-5126-4908-a76e-801922c0add0",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 992,
+    "error" : null
+  }
+} ]
