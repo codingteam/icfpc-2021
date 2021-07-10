@@ -3,20 +3,23 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 0,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "17481cba-48ce-455d-908a-b20bbfd49749",
   "solution" : {
     "state" : "VALID",
     "dislikes" : 158,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "c5766018-54d0-4762-8e70-73f9c344b587",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "The point at (9,48) is not inside the hole"
+    "error" : "The point at (9,48) is not inside the hole",
+    "awarded_bonuses" : null
   }
 } ]

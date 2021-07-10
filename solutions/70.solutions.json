@@ -3,6 +3,7 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 0,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 } ]

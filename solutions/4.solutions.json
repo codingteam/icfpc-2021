@@ -3,13 +3,15 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 0,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "c3337d21-5126-4908-a76e-801922c0add0",
   "solution" : {
     "state" : "VALID",
     "dislikes" : 992,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 } ]

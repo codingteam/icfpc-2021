@@ -1,8 +1,17 @@
 [ {
+  "id" : "2a656594-b126-48dd-b443-286b069548ae",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 3746,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
   "id" : "129bc037-5a3b-443a-89f1-1ac84076dc59",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "bad JSON"
+    "error" : "bad JSON",
+    "awarded_bonuses" : null
   }
 } ]

@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021
 
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParseException, JsonParser, JsonToken}
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.{DeserializationContext, ObjectMapper, SerializerProvider}
+import com.fasterxml.jackson.databind.{DeserializationContext, ObjectMapper, PropertyNamingStrategies, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 object Json {
@@ -41,6 +41,7 @@ object Json {
   })
 
   private val mapper = new ObjectMapper()
+  mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
   mapper.registerModule(DefaultScalaModule)
   mapper.registerModule(icfpc2021JsonModule)
 

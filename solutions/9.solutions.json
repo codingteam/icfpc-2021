@@ -3,20 +3,23 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 8842,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "75bf2c01-02e3-4afb-8a33-b5094b50de19",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "The edge at (123,89)-(120,74) is not inside the hole."
+    "error" : "The edge at (123,89)-(120,74) is not inside the hole.",
+    "awarded_bonuses" : null
   }
 }, {
   "id" : "7ec5e1ca-7686-4c7a-96fa-9f73915f1a99",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "The point at (33,69) is not inside the hole"
+    "error" : "The point at (33,69) is not inside the hole",
+    "awarded_bonuses" : null
   }
 } ]

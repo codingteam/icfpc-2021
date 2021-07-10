@@ -3,13 +3,15 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 685,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "98e38194-b620-4838-9228-403fc47b0ca1",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "parsing Integer failed, unexpected floating number 5.899987589795916"
+    "error" : "parsing Integer failed, unexpected floating number 5.899987589795916",
+    "awarded_bonuses" : null
   }
 } ]

@@ -3,20 +3,23 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 0,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "17425fd2-9416-4eea-a877-fa4b47bbbf47",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "Edge between (0,2) has an invalid length: original: 800, pose: 784, max epsilon: 0"
+    "error" : "Edge between (0,2) has an invalid length: original: 800, pose: 784, max epsilon: 0",
+    "awarded_bonuses" : null
   }
 }, {
   "id" : "360e9226-abb9-4168-8717-31965ea8cf52",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "Edge between (0,2) has an invalid length: original: 800, pose: 16, max epsilon: 0"
+    "error" : "Edge between (0,2) has an invalid length: original: 800, pose: 16, max epsilon: 0",
+    "awarded_bonuses" : null
   }
 } ]

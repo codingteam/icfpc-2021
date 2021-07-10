@@ -81,7 +81,7 @@ object Submitter {
     if (response.statusCode() == 200) {
       val solutionsFile = solutionsDir.resolve(s"$problemId.solutions.json")
       val solutions = DumperJson.deserialize(Files.readString(solutionsFile))
-      val newSolutions = DumperSolution(solutionId, SolutionResponse("JUST_SENT", dislikes, null)) +: solutions
+      val newSolutions = DumperSolution(solutionId, SolutionResponse("JUST_SENT", dislikes, null, null)) +: solutions
       Files.writeString(solutionsFile, DumperJson.serialize(newSolutions))
     }
   }

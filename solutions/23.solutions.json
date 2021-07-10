@@ -3,20 +3,23 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 0,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "ffe96538-b5a6-4c36-83f3-86d07fc5afdd",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "cannot unpack array of length 6 into a tuple of length 2"
+    "error" : "cannot unpack array of length 6 into a tuple of length 2",
+    "awarded_bonuses" : null
   }
 }, {
   "id" : "688d9c67-087e-407f-b154-6d6b9630cdbe",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "bad JSON"
+    "error" : "bad JSON",
+    "awarded_bonuses" : null
   }
 } ]

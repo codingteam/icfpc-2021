@@ -3,41 +3,47 @@
   "solution" : {
     "state" : "VALID",
     "dislikes" : 663,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "df5ad8d8-dde3-41d3-928b-507bf4ffa08a",
   "solution" : {
     "state" : "VALID",
     "dislikes" : 663,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "26391042-a18d-4ff6-aea8-8ce00ebfa4a4",
   "solution" : {
     "state" : "VALID",
     "dislikes" : 3704,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "30799fb7-b82a-4753-98f7-69e6ceb3bed1",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "Edge between (4,1) has an invalid length: original: 425, pose: 754, max epsilon: 150000"
+    "error" : "Edge between (4,1) has an invalid length: original: 425, pose: 754, max epsilon: 150000",
+    "awarded_bonuses" : null
   }
 }, {
   "id" : "734c5057-d7c0-45a7-8554-bee7c75147c7",
   "solution" : {
     "state" : "VALID",
     "dislikes" : 3704,
-    "error" : null
+    "error" : null,
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "44cbde5f-142b-4f46-aad4-7cc287ea770b",
   "solution" : {
     "state" : "INVALID",
     "dislikes" : null,
-    "error" : "bad JSON"
+    "error" : "bad JSON",
+    "awarded_bonuses" : null
   }
 } ]
