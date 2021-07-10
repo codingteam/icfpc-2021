@@ -50,7 +50,7 @@ package object icfpc2021 {
       x*other.x + y*other.y
     }
 
-    def round() : Point = {
+    def trunc() : Point = {
       Point(BigDecimal(x).toBigInt, BigDecimal(y).toBigInt)
     }
 

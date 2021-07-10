@@ -1,13 +1,9 @@
 package org.codingteam.icfpc2021.solver
 
-import java.nio.file.{Files, Path}
+import org.codingteam.icfpc2021.Point
 
-import math.{sin, cos, Pi, sqrt, abs}
 import scala.collection.mutable
-
-import org.codingteam.icfpc2021.{Json, Point, Problem, Solution}
-import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import scala.math.{abs, sqrt}
 
 object DumbSolver {
   def brezenhem(epsilon: Double, radius: Double) : Seq[Point] = {
@@ -83,6 +79,6 @@ object DumbSolver {
     val projection = dir * projectionLength
     val height = dp1 - projection
 
-    (projection - height).round()
+    (projection - height).trunc()
   }
 }

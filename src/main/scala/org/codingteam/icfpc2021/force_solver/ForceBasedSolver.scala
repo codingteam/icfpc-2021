@@ -24,7 +24,7 @@ object ForceBasedSolver {
       vertices = applyForces(vertices, forces)
     }
 
-    solution.copy(vertices = vertices.map(_.round()))
+    solution.copy(vertices = vertices.map(_.trunc()))
   }
 
   private def applyForces(vertices: Seq[PointD], forces: mutable.Map[Int, PointD]): Vector[PointD] = {
