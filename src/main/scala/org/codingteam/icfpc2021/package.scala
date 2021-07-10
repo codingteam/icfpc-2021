@@ -1,7 +1,10 @@
 package org.codingteam
 
+import java.awt.Color
+import java.awt.image.BufferedImage
 import scala.collection.mutable
 import scala.math.sqrt
+import scala.swing.Graphics2D
 import scala.util.control.Breaks._
 
 package object icfpc2021 {
@@ -153,6 +156,53 @@ package object icfpc2021 {
       PointD(xSum.toDouble / hole.size, ySum.toDouble / hole.size)
     }
     val figureVerticesCount: Int = figure.vertices.size
+
+    private val ClearColor: Color = Color.BLACK
+    private val FillColor: Color = Color.WHITE
+    private lazy val (shiftX, shiftY, scaleX, scaleY, imgSizeX, imgSizeY) = {
+      require(hole.nonEmpty, "Hole points list must be not empty")
+      val MaxImageSize = 4 * 1024
+      val Point(shiftX, shiftY) = holeRect.min
+      val Point(sizeX, sizeY) = holeRect.size
+      val (imgSizeX, scaleX) = if (sizeX > MaxImageSize)
+        (MaxImageSize, MaxImageSize.toDouble / sizeX.toDouble)
+      else
+        (sizeX.toInt, 1.0)
+
+      val (imgSizeY, scaleY) = if (sizeX > MaxImageSize)
+        (MaxImageSize, MaxImageSize.toDouble / sizeY.toDouble)
+      else
+        (sizeY.toInt, 1.0)
+
+      (shiftX, shiftY, scaleX, scaleY, imgSizeX, imgSizeY)
+    }
+    private lazy val holeImageArray = {
+      require(hole.nonEmpty, "Hole points list must be not empty")
+      val holeImage = new BufferedImage(imgSizeX, imgSizeY, BufferedImage.TYPE_INT_RGB)
+      val g2 = holeImage.getGraphics.asInstanceOf[Graphics2D]
+      g2.setColor(ClearColor)
+      g2.fillRect(0, 0, imgSizeX, imgSizeY)
+      val (holeXs, holeYs, holeLength) = splitPointsIntoCoords(hole map pointToImageCoord)
+      g2.setColor(FillColor)
+      g2.drawPolygon(holeXs, holeYs, holeLength)
+      g2.fillPolygon(holeXs, holeYs, holeLength)
+      val holeImageArray = Array.ofDim[Int](imgSizeX * imgSizeY)
+      holeImage.getRGB(0, 0, imgSizeX, imgSizeY, holeImageArray, 0, imgSizeX)
+      holeImageArray
+    }
+    private def pointToImageCoord(p: Point): Point = {
+      Point(((p.x - shiftX).toDouble * scaleX).toInt, ((p.y - shiftY).toDouble * scaleY).toInt)
+    }
+    private def splitPointsIntoCoords(ps: Seq[Point]) = {
+      (ps.view.map(_.x.toInt).toArray, ps.view.map(_.y.toInt).toArray, ps.size)
+    }
+    private def pointIsOutsideOfImage(v: Point) = v.x < 0 || v.y < 0 || v.x >= imgSizeX || v.y >= imgSizeY
+
+    def isPointInHole(point: Point): Boolean = {
+      val imgPoint = pointToImageCoord(point)
+      val i = (imgPoint.x + imgPoint.y * imgSizeX).toInt
+      !pointIsOutsideOfImage(point) && (holeImageArray(i) == FillColor.getRGB)
+    }
   }
 
   case class BonusUsage(bonus: String, problem: Int, edge: Option[Edge])
