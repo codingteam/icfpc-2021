@@ -1,7 +1,8 @@
 package org.codingteam.icfpc2021.visualizer
 
-import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021._
+import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.validator.SolutionValidator
 
 import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
@@ -91,6 +92,7 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     p.setLayout(new BorderLayout())
     p.add(problemPanel, BorderLayout.CENTER)
     p.add(buttonsPanel, BorderLayout.NORTH)
+    p.add(statusPanel, BorderLayout.SOUTH)
     p
   }
   private lazy val problemPanel = {
@@ -197,6 +199,32 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
 
     tb
   }
+  private lazy val solutionIsValidText = new JTextField()
+
+  private lazy val solutionDislikesText = new JTextField()
+
+  private lazy val statusPanel = {
+    val tb = new JToolBar()
+    tb.add(new JLabel("Valid:"))
+    tb.add(solutionIsValidText)
+    tb.add(new JLabel("Dislikes count:"))
+    tb.add(solutionDislikesText)
+    // we need auto update?
+    tb.add(makeAction("Update", () => updateStatus()))
+    tb
+  }
+
+  private def updateStatus(): Unit = {
+    val sol = Solution(solution)
+    val validator = new SolutionValidator(problem)
+    val evaluator = new SolutionEvaluator(problem)
+
+    val valid = validator.validate(sol)
+    val dislikes = evaluator.evaluate(sol)
+
+    solutionIsValidText.setText(valid.toString)
+    solutionDislikesText.setText(dislikes.toString())
+  }
 
   private def moveSelected(delta: Point): Unit = {
     solution = solution.zipWithIndex.map { case (p, idx) =>
@@ -205,12 +233,12 @@ class Visualizer(val problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
     problemPanel.repaint()
   }
 
-  private def printSolution() : Unit = {
+  private def printSolution(): Unit = {
     val sol = Solution(solution)
     println(Json.serializeSolution(sol))
   }
 
-  private def validateSolution() : Unit = {
+  private def validateSolution(): Unit = {
     val sol = Solution(solution)
     val validator = new SolutionValidator(problem)
     if (validator.validate(sol)) {
