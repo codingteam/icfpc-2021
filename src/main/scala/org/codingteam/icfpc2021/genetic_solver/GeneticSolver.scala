@@ -20,8 +20,8 @@ class GeneticSolver(problem: Problem) {
   /// If the best result didn't improve in the last `RestartAfter` iterations,
   /// replace `BestCreaturesToDrop` topmost creatures with random ones and
   /// continue the evolution from there.
-  private val RestartAfter: Int = 3333
-  private val BestCreaturesToDrop: Int = 20
+  private val RestartAfter: Int = 500
+  private val BestCreaturesToDrop: Int = 20000
 
   /// Squared lengths of edges.
   private val edges_sq_lengths: Vector[(Edge, BigInt)] = {
