@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 import scala.util.Random
 
-case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean)
+case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 100)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -126,8 +126,8 @@ class SolutionOptimizer(problem: Problem) {
       }
     }
 
-    val sz = problem.holeRect.size
-    val (maxDx, maxDy) = (sz.x / 2, sz.y / 2)
+    //val sz = problem.holeRect.size
+    val (maxDx, maxDy) = (options.translationDelta, options.translationDelta)
     lazy val moves = {
       if (options.useTranslations) {
         for {dx <- -maxDx to maxDy
