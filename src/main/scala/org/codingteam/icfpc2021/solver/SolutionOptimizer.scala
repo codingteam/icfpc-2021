@@ -46,6 +46,24 @@ case class Move(vector: Point) extends Action {
   }
 }
 
+case class MirrorX() extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    DumbSolver.mirrorX(solution)
+  }
+}
+
+case class MirrorY() extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    DumbSolver.mirrorY(solution)
+  }
+}
+
+case class TransposeXY() extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    DumbSolver.transposeXY(solution)
+  }
+}
+
 class SolutionOptimizer(problem: Problem) {
   val evaluator = new SolutionEvaluator(problem)
   val validator = new SolutionValidator(problem)
@@ -87,7 +105,7 @@ class SolutionOptimizer(problem: Problem) {
       }
     }
 
-    wobbles ++ mirrors ++ rotations ++ moves
+    wobbles ++ mirrors ++ rotations ++ moves ++ List(TransposeXY(), MirrorX(), MirrorY())
   }
 
   def optimizeOnce(solution: Vector[Point], options: Options): Vector[Point] = {

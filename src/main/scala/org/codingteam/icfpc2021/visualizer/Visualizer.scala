@@ -376,7 +376,11 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Rotate", rotationTool, Some('R'))
     addTool("Drag", dragTool, Some('D'))
 
-    tb.add(makeAction("Mirror", () => foldSelectedIn()))
+    tb.add(makeAction("Mirror X", () => mirrorX()))
+    tb.add(makeAction("Mirror Y", () => mirrorY()))
+    tb.add(makeAction("X<->Y", () => transposeXY()))
+
+    tb.add(makeAction("Mirror Vert", () => foldSelectedIn()))
     tb.add(makeAction("Wobble", () => wobbleSelected()))
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
@@ -486,6 +490,24 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
         solution = res(i)
       }
     }
+    repaint()
+    updateStatus()
+  }
+
+  private def mirrorX() : Unit = {
+    solution = DumbSolver.mirrorX(solution)
+    repaint()
+    updateStatus()
+  }
+
+  private def mirrorY() : Unit = {
+    solution = DumbSolver.mirrorY(solution)
+    repaint()
+    updateStatus()
+  }
+
+  private def transposeXY() : Unit = {
+    solution = DumbSolver.transposeXY(solution)
     repaint()
     updateStatus()
   }

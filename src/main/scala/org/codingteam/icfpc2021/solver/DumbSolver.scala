@@ -5,6 +5,7 @@ import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.math.BigDecimal.RoundingMode
 import scala.math.{abs, sqrt}
 
 object DumbSolver {
@@ -84,6 +85,29 @@ object DumbSolver {
     //println(s"M: $p r.t. $neighbour1 - $neighbour2: dp = $dp, p = $projection, h = $height")
 
     (neighbour1.toPointD() + projection - height).round()
+  }
+
+  def calcCenter(solution: Vector[Point]): Point = {
+    val xs = solution.map(_.x)
+    val ys = solution.map(_.x)
+    val avgX = (xs.min + xs.max) / 2
+    val avgY = (ys.min + ys.max) / 2
+    Point(avgX, avgY)
+  }
+
+  def mirrorX(solution: Vector[Point]) : Vector[Point] = {
+    val maxX = solution.map(_.x).max
+    solution.map(p => Point(maxX - p.x, p.y))
+  }
+
+  def mirrorY(solution: Vector[Point]) : Vector[Point] = {
+    val maxY = solution.map(_.y).max
+    solution.map(p => Point(p.x, maxY - p.y))
+  }
+
+  def transposeXY(solution: Vector[Point]): Vector[Point] = {
+    val Point(avgX, avgY) = calcCenter(solution)
+    solution.map(p => Point(avgX + p.y - avgY, avgY + p.x - avgX))
   }
 
   def foldInOne(figure: Figure, i: Int) : Option[Figure] = {
