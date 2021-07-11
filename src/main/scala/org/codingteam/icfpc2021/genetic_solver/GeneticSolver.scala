@@ -16,10 +16,10 @@ class GeneticSolver(problem: Problem) {
   private val CrossoverPercentage: Double = 0.1
 
   /// If the best result didn't improve in the last `RestartAfter` iterations,
-  /// take the `InheritCreatures` topmost creatures, stick them into a new
-  /// initial generation, and continue the evolution from there.
+  /// replace `BestCreaturesToDrop` topmost creatures with random ones and
+  /// continue the evolution from there.
   private val RestartAfter: Int = 3333
-  private val InheritCreatures: Int = 100
+  private val BestCreaturesToDrop: Int = 20
 
   /// Squared lengths of edges.
   private val edges_sq_lengths: Vector[(Edge, BigInt)] = {
@@ -129,7 +129,8 @@ class GeneticSolver(problem: Problem) {
 
       if (iterations_without_improvement > RestartAfter) {
         println(f"[$i%7d]  RESTART")
-        generation = (generation.take(InheritCreatures) ++ produceInitialGeneration()).take(GenerationSize)
+        println(s"\tCurrent best: ${Json.serializeSolution(creatureToSolution(generation.head.creature))}")
+        generation = (generation.drop(BestCreaturesToDrop) ++ produceInitialGeneration()).take(GenerationSize)
 
         last_best_score = (generation.head.score, i)
         iterations_without_improvement = 0
