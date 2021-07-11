@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 
-case class Options(useRotations : Boolean, useTranslations: Boolean)
+case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -31,6 +31,12 @@ case class MirrorOne(vertexIndex: Int) extends Action {
       case None => solution
       case Some(newFigure) => newFigure.vertices
     }
+  }
+}
+
+case class FoldAroundEdge(v1: Int, v2: Int) extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    DumbSolver.foldAroundLine(solution, solution(v1), solution(v2))
   }
 }
 
@@ -105,7 +111,16 @@ class SolutionOptimizer(problem: Problem) {
       }
     }
 
-    wobbles ++ mirrors ++ rotations ++ moves ++ List(TransposeXY(), MirrorX(), MirrorY())
+    val folds =
+      if (options.useFolds) {
+        problem.figure.edges.map(edge =>
+          FoldAroundEdge(edge.vertex1, edge.vertex2)
+        )
+      } else {
+        List()
+      }
+
+    wobbles ++ mirrors ++ rotations ++ moves ++ folds ++ List(TransposeXY(), MirrorX(), MirrorY())
   }
 
   def correctOnce(solution: Vector[Point], options: Options): Vector[Point] = {

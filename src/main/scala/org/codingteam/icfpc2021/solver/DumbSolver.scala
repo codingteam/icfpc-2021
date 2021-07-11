@@ -87,6 +87,21 @@ object DumbSolver {
     (neighbour1.toPointD() + projection - height).round()
   }
 
+  def mirrorAroundLine(solution: Vector[Point], p1: Point, p2: Point): Vector[Point] = {
+    solution.map(p => mirror(p, p1, p2))
+  }
+
+  def foldAroundLine(solution: Vector[Point], p1: Point, p2: Point): Vector[Point] = {
+    val dp = p2 - p1
+    solution.map(p =>
+      if ((dp cross (p - p1)) < 0) {
+        mirror(p, p1, p2)
+      } else {
+        p
+      }
+    )
+  }
+
   def calcCenter(solution: Vector[Point]): Point = {
     val xs = solution.map(_.x)
     val ys = solution.map(_.x)

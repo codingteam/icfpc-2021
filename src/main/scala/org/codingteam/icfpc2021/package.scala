@@ -42,6 +42,10 @@ package object icfpc2021 {
       sqrt((x * x + y * y).toDouble)
     }
 
+    def cross(other: Point): BigInt = {
+      x * other.y - y * other.x
+    }
+
     def normalized(): PointD = {
       val norm = abs()
       PointD(x.toDouble / norm, y.toDouble / norm)
