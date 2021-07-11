@@ -106,12 +106,18 @@ class GeneticSolver(problem: Problem) {
     var last_best_score: (BigInt, Int) = (generation.head.score, 0)
     var iterations_without_improvement = 0
 
+    var absolute_best: (BigInt, Creature) = (generation.head.score, generation.head.creature)
+
     for (i <- 0 until MaxIterations) {
       if (generation.head.score < last_best_score._1) {
         last_best_score = (generation.head.score, i)
         iterations_without_improvement = 0
       } else {
         iterations_without_improvement += 1
+      }
+
+      if (generation.head.score < absolute_best._1) {
+        absolute_best = (generation.head.score, generation.head.creature)
       }
 
       if (i % 100 == 0 || generation.head.score == 0) {
@@ -150,7 +156,15 @@ class GeneticSolver(problem: Problem) {
       generation = (generation ++ newGeneration).take(GenerationSize)
     }
 
-    None
+
+    if (absolute_best._1 == 0) {
+      Some(absolute_best._2)
+    } else {
+      println(s"The best solution we ever got had a score of ${absolute_best._1}:")
+      println(s"\t${Json.serializeSolution(creatureToSolution(absolute_best._2))}")
+
+      None
+    }
   }
 
   private def creatureToSolution(creature: Creature): Solution = {
