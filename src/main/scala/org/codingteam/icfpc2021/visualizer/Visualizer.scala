@@ -378,7 +378,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
   private def wobbleSelected(): Unit = {
     for (index <- selectionTool.selectedFigureVertices) {
-      val res = DumbSolver.wobbleOne(problem, solution, index)
+      val res = DumbSolver.wobbleOne(problem, solution, index, delta=20)
       if (res.length >= 1) {
         println("Move")
         solution = res(0)
