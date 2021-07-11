@@ -158,7 +158,7 @@ class GeneticSolver(problem: Problem) {
         val solution = creatureToSolution(generation.head.creature)
         val valid = validator.validate(solution)
 
-        println(f"[$i%7d]   Best score: $score%6d   Valid: $valid   No improvements for ${iterations_without_improvement}%4d iters")
+        println(f"[$i%7d]   Best score: $score%9d   Valid: $valid   No improvements for ${iterations_without_improvement}%4d iters")
       }
 
       if (generation.head.score == 0) {
@@ -167,7 +167,7 @@ class GeneticSolver(problem: Problem) {
 
       if (iterations_without_improvement > RestartAfter) {
         println(f"[$i%7d]  RESTART")
-        println(s"\tCurrent best: ${Json.serializeSolution(creatureToSolution(generation.head.creature))}")
+        println(s"\tThis iteration's best: ${Json.serializeSolution(creatureToSolution(generation.head.creature))}")
         generation = (generation.drop(BestCreaturesToDrop) ++ produceInitialGeneration()).take(GenerationSize)
 
         last_best_score = (generation.head.score, i)
