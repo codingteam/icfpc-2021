@@ -1,6 +1,10 @@
 package org.codingteam.icfpc2021.sat_solver
 
-sealed abstract class Expression
+case class Impossible(private val msg: String) extends Exception(msg)
+
+sealed abstract class Expression {
+  def toCNF(): Expression
+}
 
 case class Term(n: Int) extends Expression {
   def canEqual(a: Any): Boolean = a.isInstanceOf[Term]
@@ -11,6 +15,8 @@ case class Term(n: Int) extends Expression {
     }
   override def hashCode: Int = n*2
   override def toString: String = n.toString
+
+  override def toCNF(): Expression = this
 }
 
 case class And(lhs: Expression, rhs: Expression) extends Expression {
@@ -31,6 +37,36 @@ case class And(lhs: Expression, rhs: Expression) extends Expression {
     result.append(")")
     result.toString
   }
+
+  override def toCNF(): Expression =
+    (lhs.toCNF(), rhs.toCNF()) match {
+      case (AlwaysFalse, e) => AlwaysFalse
+      case (e, AlwaysFalse) => AlwaysFalse
+      case (AlwaysTrue, e) => e
+      case (e, AlwaysTrue) => e
+
+      case (a: Term, b: Term) => And(a, b)
+
+      case (a, Not(b)) =>
+        if (a == b) {
+          AlwaysFalse
+        } else {
+          And(a, Not(b))
+        }
+      case (Not(a), b) =>
+        if (a == b) {
+          AlwaysFalse
+        } else {
+          And(Not(a), b)
+        }
+
+      case (a, b) =>
+        if (a == b) {
+          a
+        } else {
+          And(a, b)
+        }
+    }
 }
 
 case class Or(lhs: Expression, rhs: Expression) extends Expression {
@@ -51,6 +87,40 @@ case class Or(lhs: Expression, rhs: Expression) extends Expression {
     result.append(")")
     result.toString
   }
+
+  override def toCNF(): Expression =
+    (lhs.toCNF(), rhs.toCNF()) match {
+      case (AlwaysFalse, e) => e
+      case (e, AlwaysFalse) => e
+      case (AlwaysTrue, e) => AlwaysTrue
+      case (e, AlwaysTrue) => AlwaysTrue
+
+      case (a: Term, b: Term) => Or(a, b)
+
+      case (a, Not(b)) =>
+        if (a == b) {
+          AlwaysTrue
+        } else {
+          Or(a, Not(b))
+        }
+      case(Not(a), b) =>
+        if (a == b) {
+          AlwaysTrue
+        } else {
+          Or(Not(a), b)
+        }
+
+      // distributivity law
+      case (a, And(x, y)) => And(Or(a, x).toCNF(), Or(a, y).toCNF()).toCNF()
+      case (And(x, y), a)  => And(Or(a, x).toCNF(), Or(a, y).toCNF()).toCNF()
+
+      case (a, b) =>
+        if (a == b) {
+          a
+        } else {
+          And(AlwaysTrue, Or(a, b))
+        }
+    }
 }
 
 case class Not(inner: Expression) extends Expression {
@@ -69,11 +139,27 @@ case class Not(inner: Expression) extends Expression {
     result.append(")")
     result.toString
   }
+
+  override def toCNF(): Expression =
+    inner.toCNF() match {
+      // De Morgan's law
+      case Or(a, b) => And(Not(a).toCNF(), Not(b).toCNF()).toCNF()
+      case And(a, b) => Or(Not(a).toCNF(), Not(b).toCNF()).toCNF()
+      // remove double negation
+      case Not(e) => e
+      case _ => this
+    }
 }
 
-object AlwaysTrue extends Expression
+object AlwaysTrue extends Expression {
+  override def toString: String = "AlwaysTrue"
+  override def toCNF(): Expression = this
+}
 
-object AlwaysFalse extends Expression
+object AlwaysFalse extends Expression {
+  override def toString: String = "AlwaysFalse"
+  override def toCNF(): Expression = this
+}
 
 case class BooleanLogic() {
   private var expression: Expression = AlwaysTrue
@@ -86,6 +172,6 @@ case class BooleanLogic() {
       }
 
   def toCNF(): Expression = {
-    expression
+    expression.toCNF()
   }
 }
