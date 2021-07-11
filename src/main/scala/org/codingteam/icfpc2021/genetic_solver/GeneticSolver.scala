@@ -85,7 +85,7 @@ class GeneticSolver(problem: Problem) {
     var generation = produceInitialGeneration()
 
     for (i <- 0 until MaxIterations) {
-      if (i % 10 == 0 || generation.head.score == 0) {
+      if (i % 100 == 0 || generation.head.score == 0) {
         val score = generation.head.score
 
         val solution = creatureToSolution(generation.head.creature)
@@ -103,14 +103,15 @@ class GeneticSolver(problem: Problem) {
         return Some(generation.head.creature)
       }
 
-      val newGeneration = (for (scored <- generation) yield {
+      import scala.collection.parallel.CollectionConverters._
+      val newGeneration = generation.par.map { scored =>
         if (Random.nextBoolean()) {
           ScoredCreature(mutate(scored.creature))
         } else {
           // crossover
           scored
         }
-      })
+      }
 
       generation = (generation ++ newGeneration).take(GenerationSize)
     }
