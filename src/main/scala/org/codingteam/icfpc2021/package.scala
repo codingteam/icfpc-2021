@@ -11,6 +11,23 @@ import scala.util.control.Breaks._
 
 package object icfpc2021 {
 
+  object Quadrant extends Enumeration {
+    type Quadrant = Value
+
+    val First, Second, Third, Fourth = Value
+  }
+
+  /// Next quadrant, counter-clockwise
+  def nextQuadrant(quad: Quadrant.Quadrant): Quadrant.Quadrant = {
+    import Quadrant._
+    quad match {
+      case First => Second;
+      case Second => Third;
+      case Third => Fourth;
+      case Fourth => First;
+    }
+  }
+
   case class Point(x: BigInt, y: BigInt) {
     override def toString: String = s"($x, $y)"
 
@@ -45,6 +62,21 @@ package object icfpc2021 {
 
     def moveTowards(target: Point, distanceK: Double): Point = {
       this + (target - this) * distanceK
+    }
+
+    // ported from temp/gui.py getquad()
+    def quadrant(): Quadrant.Quadrant = {
+      import Quadrant._
+
+      if (x > 0 && y >= 0) {
+        First
+      } else if (x <= 0 && y > 0) {
+        Second
+      } else if (x < 0 && y <= 0) {
+        Third
+      } else /* if (x >= 0 && y < 0) */ {
+        Fourth
+      }
     }
   }
 
@@ -342,6 +374,69 @@ package object icfpc2021 {
           Set[Point]()
         }
       }).filter(!_.isEmpty).toSet
+    }
+
+
+    // ported from temp/gui.py point_in_hole()
+    def isPointInHoleExact(point: Point): Boolean = {
+      val Point(px, py) = point
+
+      var last_hole_point = hole.last
+      var angle: Int = 0
+      for (cur_hole_point <- hole) {
+        val Point(x1, y1) = last_hole_point
+        val Point(x2, y2) = cur_hole_point
+
+        val q1 = (last_hole_point - point).quadrant()
+        val q2 = (cur_hole_point - point).quadrant()
+        if (q1 == q2) {
+          // nothing to do
+        } else if (nextQuadrant(q1) == q2) {
+          angle += 1
+        } else if (nextQuadrant(q2) == q1) {
+          angle -= 1
+        } else {
+          val mult = (px-x1)*(y2-y1)-(x2-x1)*(py-y1)
+          if (mult == 0) {
+            return true // on the line
+          } else if (mult < 0) {
+            angle += 2
+          } else { // mult > 0
+            angle -= 2
+          }
+        }
+        last_hole_point = cur_hole_point
+      }
+
+      return angle != 0
+    }
+
+    // ported from temp/gui.py line_in_hole
+    // note that we invert the result (Python checks if the line is *in* the
+    // hole, we're checking if it's *outside* of the hole)
+    def segmentGoesOutsideTheHole(segment: (Point, Point)): Boolean = {
+      val (p1, p2) = segment
+      if (!isPointInHoleExact(p1) || !isPointInHoleExact(p2)) {
+        return true
+      }
+      val Point(ax1, ay1) = p1
+      val Point(ax2, ay2) = p2
+
+      var last_hole_point = hole.last
+      for (cur_hole_point <- hole) {
+        val Point(bx1, by1) = hole.last
+        val Point(bx2, by2) = cur_hole_point
+
+		if (( (ax2-ax1)*(by1-ay1)-(bx1-ax1)*(ay2-ay1) ) * ( (ax2-ax1)*(by2-ay1)-(bx2-ax1)*(ay2-ay1) ) < 0
+            &&
+		   ( (bx2-bx1)*(ay1-by1)-(ax1-bx1)*(by2-by1) ) * ( (bx2-bx1)*(ay2-by1)-(ax2-bx1)*(by2-by1) ) < 0)
+           {
+			return true
+           }
+		last_hole_point = cur_hole_point
+      }
+
+      false
     }
   }
 
