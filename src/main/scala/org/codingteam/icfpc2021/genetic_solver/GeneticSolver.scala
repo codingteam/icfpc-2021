@@ -7,6 +7,7 @@ import java.nio.file.{Files, Path}
 import scala.util.Random
 import scala.collection.immutable.TreeSet
 import scala.collection.concurrent.TrieMap
+import scala.math.abs
 
 class GeneticSolver(problem: Problem) {
   private val MaxIterations: Int = 100000
@@ -57,6 +58,11 @@ class GeneticSolver(problem: Problem) {
     validSegments.getOrElseUpdate(new_segment, problem.segmentGoesOutsideTheHole(new_segment))
   }
 
+  private def isEdgeLengthAcceptable(expected: BigInt, actual: BigInt): Boolean = {
+    val gcd = actual.gcd(expected)
+    abs((actual/gcd).toDouble / (expected/gcd).toDouble - 1) <= (problem.epsilon.toDouble / 1e6)
+  }
+
   private def calculateScore(creature: Creature): Score = {
     val creatureVertices: Vector[Point] = creature.map(problem.hole(_))
 
@@ -69,13 +75,12 @@ class GeneticSolver(problem: Problem) {
         expected_length * expected_length
       } else {
         val actual_length = p1.distanceSq(p2)
-        val diff = actual_length - expected_length
-
-        /// WTH, there's no abs() for BigInt?
-        if (diff < 0) {
-          -diff
+        if (isEdgeLengthAcceptable(expected_length, actual_length)) {
+          // it's acceptable, so consider this edge solved
+          BigInt(0)
         } else {
-          diff
+          // there's an unacceptable difference, so let's return squared expected length to indicate that
+          expected_length
         }
       }
     }).sum
