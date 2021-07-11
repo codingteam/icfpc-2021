@@ -79,8 +79,7 @@ class GeneticSolver(problem: Problem) {
           // it's acceptable, so consider this edge solved
           BigInt(0)
         } else {
-          // there's an unacceptable difference, so let's return squared expected length to indicate that
-          expected_length
+          (actual_length - expected_length).abs
         }
       }
     }).sum
