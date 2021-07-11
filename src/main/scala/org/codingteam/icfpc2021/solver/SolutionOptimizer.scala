@@ -9,6 +9,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 
+case class Options(useRotations : Boolean, useTranslations: Boolean)
+
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
 }
@@ -47,7 +49,7 @@ case class Move(vector: Point) extends Action {
 class SolutionOptimizer(problem: Problem) {
   val evaluator = new SolutionEvaluator(problem)
   val validator = new SolutionValidator(problem)
-  def possibleActions(solution: Vector[Point]): Seq[Action] = {
+  def possibleActions(solution: Vector[Point], options: Options): Seq[Action] = {
     val n = solution.length
     val figure = Figure(problem.figure.edges, solution)
     val idxs = 0 to (n-1)
@@ -62,22 +64,34 @@ class SolutionOptimizer(problem: Problem) {
       }
     ) : Seq[Action]
 
-    val rotations = (0 until 360).map(i => {
-      val angle = 2*Pi / 360.0
-      Rotate(angle)
-    })
+    val rotations = {
+      if (options.useRotations) {
+        (0 until 360).map(i => {
+          val angle = 2 * Pi / 360.0
+          Rotate(angle)
+        })
+      } else {
+        List()
+      }
+    }
 
     val sz = problem.holeRect.size
     val (maxDx, maxDy) = (sz.x / 2, sz.y / 2)
-    val moves = for {dx <- -maxDx to maxDy
-                     dy <- -maxDy to maxDy}
-      yield Move(Point(dx, dy))
+    lazy val moves = {
+      if (options.useTranslations) {
+        for {dx <- -maxDx to maxDy
+             dy <- -maxDy to maxDy}
+        yield Move(Point(dx, dy))
+      } else {
+        List()
+      }
+    }
 
     wobbles ++ mirrors ++ rotations ++ moves
   }
 
-  def optimizeOnce(solution: Vector[Point]): Vector[Point] = {
-    val actions = possibleActions(solution)
+  def optimizeOnce(solution: Vector[Point], options: Options): Vector[Point] = {
+    val actions = possibleActions(solution, options)
     //println(s"A: $actions")
     val sols = actions.map(a => Solution(a.apply(problem, solution), null))
     val validSols = sols.filter(sol => validator.validate(sol))

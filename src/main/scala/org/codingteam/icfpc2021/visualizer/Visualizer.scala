@@ -4,7 +4,7 @@ import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
 import org.codingteam.icfpc2021.rotation_solver.RotationSolver
-import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer}
+import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer, SolutionOptimizerPanel}
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
@@ -18,6 +18,8 @@ import java.awt.event.{
   MouseWheelListener,
 }
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
+import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener}
+import java.awt.{BorderLayout, Color, Dimension, Graphics, GridLayout}
 import java.nio.file.{Files, Path, Paths}
 import java.io.File
 import javax.swing._
@@ -197,13 +199,21 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
   private var guidesMode = "no"
 
+  private lazy val rightPanel = {
+    val p = new JPanel()
+    p.setLayout(new GridLayout(-1, 1))
+    p.add(optimizerOptionsPanel)
+    p.add(somOptionsPanel)
+    p
+  }
+
   private lazy val mainPanel = {
     val p = new JPanel()
     p.setLayout(new BorderLayout())
     p.add(problemPanel, BorderLayout.CENTER)
     p.add(buttonsPanel, BorderLayout.NORTH)
     p.add(statusPanel, BorderLayout.SOUTH)
-    p.add(somOptionsPanel, BorderLayout.EAST)
+    p.add(rightPanel, BorderLayout.EAST)
     p
   }
   private lazy val problemPanel = {
@@ -415,6 +425,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private lazy val somOptionsPanel = new SOMSolverOptionsPanel
+  private lazy val optimizerOptionsPanel = new SolutionOptimizerPanel
 
   private def runSOMSolver(): Unit = {
     val options = somOptionsPanel.options
@@ -436,15 +447,11 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def runOptimizer(): Unit = {
-    val validator = new SolutionValidator(problem)
-    if (validator.validate(Solution(solution, null))) {
-      val optimizer = new SolutionOptimizer(problem)
-      solution = optimizer.optimizeOnce(solution)
-      repaint()
-      updateStatus()
-    } else {
-      println("Won't optimize, solution is not valid")
-    }
+    val optimizer = new SolutionOptimizer(problem)
+    val options = optimizerOptionsPanel.options
+    solution = optimizer.optimizeOnce(solution, options)
+    repaint()
+    updateStatus()
   }
 
   private def moveSelected(delta: Point): Unit = {
