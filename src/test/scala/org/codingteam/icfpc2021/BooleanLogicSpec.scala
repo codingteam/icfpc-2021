@@ -30,7 +30,7 @@ class BooleanLogicSpec extends AnyFlatSpec with should.Matchers {
     val logic = BooleanLogic()
     logic.and(And(x))
     logic.and(And(y))
-    logic.and(And(z))
+    logic.and(z)
 
     val expected = And(x, y, z)
 

@@ -79,8 +79,12 @@ object Not {
 case class BooleanLogic() {
   private var expression = And()
 
-  def and(expr: And) = {
-    expression = And(expression.inner ++ expr.inner)
+  def and(expr: Expression) = {
+    expression =
+      expr match {
+        case e: And => And(expression.inner ++ e.inner)
+        case _ => And(expression.inner.appended(expr))
+      }
   }
 
   def toCNF(): Expression = {
