@@ -15,6 +15,12 @@ class GeneticSolver(problem: Problem) {
   /// How many of creature's genes should be replaced when crossing with another creature
   private val CrossoverPercentage: Double = 0.1
 
+  /// If the best result didn't improve in the last `RestartAfter` iterations,
+  /// take the `InheritCreatures` topmost creatures, stick them into a new
+  /// initial generation, and continue the evolution from there.
+  private val RestartAfter: Int = 3333
+  private val InheritCreatures: Int = 100
+
   /// Squared lengths of edges.
   private val edges_sq_lengths: Vector[(Edge, BigInt)] = {
     (for (edge <- problem.figure.edges) yield {
@@ -96,18 +102,37 @@ class GeneticSolver(problem: Problem) {
 
     var generation = produceInitialGeneration()
 
+    // Last best score and the iteration at which it was attained.
+    var last_best_score: (BigInt, Int) = (generation.head.score, 0)
+    var iterations_without_improvement = 0
+
     for (i <- 0 until MaxIterations) {
+      if (generation.head.score < last_best_score._1) {
+        last_best_score = (generation.head.score, i)
+        iterations_without_improvement = 0
+      } else {
+        iterations_without_improvement += 1
+      }
+
       if (i % 100 == 0 || generation.head.score == 0) {
         val score = generation.head.score
 
         val solution = creatureToSolution(generation.head.creature)
         val valid = validator.validate(solution)
 
-        println(f"[$i%7d]  Best score: $score%6d  Valid: $valid")
+        println(f"[$i%7d]   Best score: $score%6d   Valid: $valid   No improvements for ${iterations_without_improvement}%4d iters")
       }
 
       if (generation.head.score == 0) {
         return Some(generation.head.creature)
+      }
+
+      if (iterations_without_improvement > RestartAfter) {
+        println(f"[$i%7d]  RESTART")
+        generation = (generation.take(InheritCreatures) ++ produceInitialGeneration()).take(GenerationSize)
+
+        last_best_score = (generation.head.score, i)
+        iterations_without_improvement = 0
       }
 
       import scala.collection.parallel.CollectionConverters._
