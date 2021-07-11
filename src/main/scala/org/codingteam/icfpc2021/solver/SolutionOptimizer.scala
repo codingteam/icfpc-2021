@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 import scala.util.Random
 
-case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 100)
+case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 10)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]

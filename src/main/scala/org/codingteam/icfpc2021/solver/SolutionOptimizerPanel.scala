@@ -31,7 +31,7 @@ class SolutionOptimizerPanel extends JPanel {
     add(useTranslation)
     add(translationDelta)
     add(useFold)
-    this.options = Options(useRotations=true, useTranslations=true, useFolds=true)
+    this.options = Options(useRotations=true, useTranslations=false, useFolds=true)
     this.setBorder(new TitledBorder("Optimizer options"))
   }
 
