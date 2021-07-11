@@ -9,7 +9,7 @@ import org.codingteam.icfpc2021.sat_solver._
 class BooleanLogicSpec extends AnyFlatSpec with should.Matchers {
   "BooleanLogic.toCNF" should "return nothing if not given anything" in {
     val logic = new BooleanLogic()
-    (logic.toCNF()) should equal (And())
+    (logic.toCNF()) should equal (AlwaysTrue)
   }
 
   it should "return the CNF it was given" in {
@@ -28,11 +28,11 @@ class BooleanLogicSpec extends AnyFlatSpec with should.Matchers {
     val (x, y, z) = (Term(0), Term(1), Term(2))
 
     val logic = BooleanLogic()
-    logic.and(And(x))
-    logic.and(And(y))
+    logic.and(x)
+    logic.and(y)
     logic.and(z)
 
-    val expected = And(x, y, z)
+    val expected = And(And(x, y), z)
 
     (logic.toCNF()) should equal (expected)
   }
