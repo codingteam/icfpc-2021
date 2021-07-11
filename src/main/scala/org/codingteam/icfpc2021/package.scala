@@ -89,6 +89,10 @@ package object icfpc2021 {
     }
   }
 
+  object PointBD {
+    val Zero: PointBD = PointBD(0, 0)
+  }
+
   case class PointD(x: Double, y: Double) {
     def abs(): Double = sqrt(x * x + y * y)
 
@@ -282,12 +286,12 @@ package object icfpc2021 {
 
     /** Distance range squared units.
      *
-     *  Given an squared distance `distSq`, return allowed square distange range
-     *  multiplied by 1000000.
+     * Given an squared distance `distSq`, return allowed square distange range
+     * multiplied by 1000000.
      */
     def distRangeSqUnits(distSq: BigInt): (BigInt, BigInt) =
       (distSq * (1000000 - epsilon),
-       distSq * (1000000 + epsilon))
+        distSq * (1000000 + epsilon))
 
     def edgeDistRangeSqUnits(i: Int, j: Int): (BigInt, BigInt) =
       distRangeSqUnits(figure.vertices(i).distanceSq(figure.vertices(j)))
@@ -337,7 +341,7 @@ package object icfpc2021 {
         } else {
           Set[Point]()
         }
-      }).filter(! _.isEmpty).toSet
+      }).filter(!_.isEmpty).toSet
     }
   }
 

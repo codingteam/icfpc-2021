@@ -1,7 +1,7 @@
 package org.codingteam.icfpc2021.som
 
+import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.{Point, Problem, Solution}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -17,23 +17,31 @@ class SOMSolver(problem: Problem,
     log(s"SOM solver, options=$options")
     val Scale: Int = 6
     val data = initialCoords.view.map(_.toPointBD(Scale)).toArray
+    val problemData = problem.figure.vertices.view.map(_.toPointBD(Scale)).toArray
     val hole = problem.hole.view.map(_.toPointBD(Scale)).toArray
 
     def currentSolution = Solution(data.view.map(_.toPoint).toVector, null)
 
+    def dataEdgeLengthSq(e: Edge): BigDecimal = data(e.vertex1) distanceSq data(e.vertex2)
+
+    def srcEdgeLengthSq(e: Edge): BigDecimal = problemData(e.vertex1) distanceSq problemData(e.vertex2)
+
     val processedVertices = Array.ofDim[Boolean](problem.figure.vertices.size)
     val currentVertices = mutable.Buffer[Int]()
     val nextVertices = mutable.Buffer[Int]()
+    val currentEdges = mutable.Buffer[Edge]()
+    val nextEdges = mutable.Buffer[Edge]()
+
     for (t <- 0 until options.stepCount) {
       //      log(s"$t/${options.stepCount}..")
       java.util.Arrays.fill(processedVertices, false)
-      val xt = hole(rnd.nextInt(problem.hole.size))
       val tf = (options.stepCount - t).toDouble / options.stepCount
       val alpha = options.startAlpha * tf
       val sigma = options.startSigma * tf
-      // Move toward to hole points.
+      val xt = hole(rnd.nextInt(problem.hole.size))
       val nearestInd = data.view.zipWithIndex.minBy(_._1 distanceSq xt)._2
       val neighbourSteps = (3.0 * sigma).round.toInt
+      // Move toward to hole points.
       currentVertices.clear()
       currentVertices += nearestInd
       for (i <- 0 to neighbourSteps) {
@@ -53,8 +61,46 @@ class SOMSolver(problem: Problem,
         currentVertices.clear()
         nextVertices foreach currentVertices.+=
       }
-      // Move to correct edges.
 
+      // Move to correct edges.
+      @inline def correctEdge(e: Edge): Unit = {
+        val hci = alpha
+        val v1 = data(e.vertex1)
+        val v2 = data(e.vertex2)
+        val actualLength = math.sqrt((v1 distanceSq v2).toDouble)
+        val (minLength, maxLength) = {
+          val (a, b) = problem.edgeDistRangeSqUnits(e.vertex1, e.vertex2)
+
+          @inline def toDouble(v: BigInt) = math.sqrt(v.toDouble / 1000000)
+
+          (toDouble(a), toDouble(b))
+        }
+
+        @inline def movePoints(k: Double): Unit = {
+          data(e.vertex1) = v1.moveTowards(v2, k)
+          data(e.vertex2) = v2.moveTowards(v1, k)
+        }
+
+        val Eps = 1e-6
+        if (actualLength.abs < Eps) {
+          if (minLength > 0) {
+            val angle = rnd.nextDouble() * math.Pi * 2.0
+            data(e.vertex1) = PointBD(math.cos(angle) * minLength * 0.5, math.cos(angle) * minLength * 0.5)
+            data(e.vertex2) = PointBD.Zero - data(e.vertex1)
+          }
+        } else if (actualLength < minLength) {
+          val d = minLength - actualLength
+          val k = -d / actualLength * 0.5 * hci
+          movePoints(k)
+        } else if (actualLength > maxLength) {
+          val d = actualLength - maxLength
+          val k = d / actualLength * 0.5 * hci
+          movePoints(k)
+        }
+      }
+
+      val edge = problem.figure.edges(rnd.nextInt(problem.figure.edges.size))
+      correctEdge(edge)
       // Move to minimize out of hole square (?).
 
     }
