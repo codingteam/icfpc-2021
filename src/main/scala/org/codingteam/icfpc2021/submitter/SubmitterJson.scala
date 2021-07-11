@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 case class HelloResponse(hello: String)
-case class SolutionResponse(state: String, dislikes: BigInt, error: String, awardedBonuses: Vector[Nothing])
+case class BonusAward(bonus: String, problem: Int)
+case class SolutionResponse(state: String, dislikes: BigInt, error: String, awardedBonuses: Vector[BonusAward])
 case class PostResponse(id: String)
 
 object SubmitterJson {
