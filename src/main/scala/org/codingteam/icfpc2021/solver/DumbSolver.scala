@@ -7,6 +7,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.math.BigDecimal.RoundingMode
 import scala.math.{abs, sqrt}
+import scala.util.Random
 
 object DumbSolver {
   def brezenhem(epsilon: Double, radius: Double) : Seq[Point] = {
@@ -139,7 +140,10 @@ object DumbSolver {
   }
 
   def wobbleOne(problem: Problem, solution: Vector[Point], i: Int, delta: Int = 2) : Seq[Vector[Point]] = {
-    val validator = new SolutionValidator(problem)
+    wobbleOne(new SolutionValidator(problem), solution, i, delta)
+  }
+
+  def wobbleOne(validator: SolutionValidator, solution: Vector[Point], i: Int, delta: Int) : Seq[Vector[Point]] = {
     val newPos = new ListBuffer[Vector[Point]]()
     val p = solution(i)
     for (dx <- -delta to delta) {
@@ -156,5 +160,19 @@ object DumbSolver {
       }
     }
     newPos.toSeq
+  }
+
+  def wobbleAll(validator: SolutionValidator, random : Random, solution: Vector[Point], delta: Int = 2) : Vector[Point] = {
+    var currentSolution = solution
+    solution.indices.foreach(i => {
+      val ws = wobbleOne(validator, solution, i, delta)
+      if (ws.length == 1) {
+        currentSolution = ws(0)
+      } else if (ws.length > 1) {
+        val r = random.nextInt(ws.length-1)
+        currentSolution = ws(r)
+      }
+    })
+    currentSolution
   }
 }

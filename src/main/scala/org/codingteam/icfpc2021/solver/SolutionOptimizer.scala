@@ -8,6 +8,7 @@ import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
+import scala.util.Random
 
 case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean)
 
@@ -136,9 +137,21 @@ class SolutionOptimizer(problem: Problem) {
 
   def optimizeOnce(solution: Vector[Point], options: Options): Vector[Point] = {
     val actions = possibleActions(solution, options)
+    val random = new Random()
     //println(s"A: $actions")
     val sols = actions.map(a => Solution(a.apply(problem, solution), null))
-    val validSols = sols.filter(sol => validator.validate(sol))
+    val validSols = sols.flatMap(sol =>
+      if (validator.validate(sol)) {
+        Some(sol)
+      } else {
+        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices), null)
+        if (validator.validate(wobbled)) {
+          Some(wobbled)
+        } else {
+          None
+        }
+      }
+    )
     val results = validSols.map(sol => evaluator.evaluate(sol))
     //println(s"R: $results")
     val bestIdx = results.zipWithIndex.minBy(_._1)._2
