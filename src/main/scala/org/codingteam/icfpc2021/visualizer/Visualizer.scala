@@ -24,51 +24,87 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   private var solution: Vector[Point] = _
   private var originalEdgeLengths: Vector[BigInt] = _
 
-  trait Tool {
-    // TODO: decouple default implementations from childrens implementations
-    //       i.e. childs shouldn't call `super.something()`
+  case class DragInfo(
+    start: java.awt.Point,
+    curr: java.awt.Point,
+    prev: java.awt.Point,
+  )
 
-    var rect: Option[(java.awt.Point, java.awt.Point)] = None
+  class ToolHandler extends MouseListener with MouseMotionListener {
+    var info: Option[DragInfo] = None
+    private var tool = new Tool() {}
 
-    def startDrag(e: MouseEvent): Unit = {
-      rect = Some((new java.awt.Point(e.getX, e.getY), new java.awt.Point(e.getX, e.getY)))
+    def setTool(newTool: Tool): Unit = {
+      info.foreach { info => tool.endDrag(info) }
+      tool = newTool
+    }
+
+    override def mouseClicked(me: MouseEvent): Unit = {
+      println(translator.toModel(me.getX, me.getY))
+    }
+
+    override def mouseEntered(e: MouseEvent): Unit = {}
+
+    override def mouseExited(e: MouseEvent): Unit = {}
+
+    override def mousePressed(e: MouseEvent): Unit = {
+      problemPanel.requestFocus()
+      val newInfo = new DragInfo(
+        new java.awt.Point(e.getX, e.getY),
+        new java.awt.Point(e.getX, e.getY),
+        new java.awt.Point(e.getX, e.getY),
+      )
+      info = Some(newInfo)
+      tool.startDrag(newInfo)
       updateStatus()
     }
 
-    def endDrag(): Unit = {
-      rect = None
-      updateStatus()
-    }
-
-    def dragged(e: MouseEvent): Unit = {
-      rect foreach { sel =>
-        sel._2.setLocation(e.getX, e.getY)
+    override def mouseReleased(e: MouseEvent): Unit = {
+      info foreach { info =>
+        tool.endDrag(info)
+        updateStatus()
       }
     }
 
+    override def mouseDragged(e: MouseEvent): Unit = {
+      info foreach { info =>
+        info.curr.setLocation(e.getX, e.getY)
+        tool.dragged(info)
+        info.prev.setLocation(e.getX, e.getY)
+        updateStatus()
+      }
+    }
+
+    override def mouseMoved(e: MouseEvent): Unit = {}
+  }
+  val toolHandler = new ToolHandler()
+
+  trait Tool {
+    def startDrag(info: DragInfo): Unit = {}
+    def endDrag(info: DragInfo): Unit = {}
+    def dragged(info: DragInfo): Unit = {}
     def reset(): Unit = {}
   }
 
   class SelectionTool extends Tool {
     var selectedFigureVertices: mutable.BitSet = mutable.BitSet()
+    var rect: Option[(java.awt.Point, java.awt.Point)] = None
 
-    override def dragged(e: MouseEvent): Unit = {
-      super.dragged(e)
-      rect foreach { sel =>
-        val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
-        val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
-        val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
+    override def dragged(info: DragInfo): Unit = {
+      val (x1, x2) = (info.start.x.min(info.curr.x), info.start.x.max(info.curr.x))
+      val (y1, y2) = (info.start.y.min(info.curr.y), info.start.y.max(info.curr.y))
+      this.rect = Some((new java.awt.Point(x1, y1), new java.awt.Point(x2, y2)))
+      val rect = Rect(translator.toModel(x1, y1), translator.toModel(x2, y2))
 
-        selectedFigureVertices.clear()
-        for ((vert, i) <- solution.zipWithIndex) {
-          if (rect.contains(vert)) {
-            selectedFigureVertices.add(i)
-          }
+      selectedFigureVertices.clear()
+      for ((vert, i) <- solution.zipWithIndex) {
+        if (rect.contains(vert)) {
+          selectedFigureVertices.add(i)
         }
-
-        updateStatus()
       }
     }
+
+    override def endDrag(info: DragInfo): Unit = rect = None
 
     override def reset(): Unit = selectedFigureVertices = mutable.BitSet()
   }
@@ -76,59 +112,42 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   class MoveTool extends Tool {
     var prev: Point = Point(0, 0)
 
-    override def startDrag(e: MouseEvent): Unit = {
-      super.startDrag(e)
+    override def startDrag(info: DragInfo): Unit = {
       prev = Point(0, 0)
     }
 
-    override def dragged(e: MouseEvent): Unit = {
-      super.dragged(e)
-      rect foreach { sel =>
-        val curr = translator.toModelDelta(sel._2.x - sel._1.x, sel._2.y - sel._1.y)
-
-        if (curr != prev) {
-          moveSelected(curr - prev)
-        }
-        prev = curr
+    override def dragged(info: DragInfo): Unit = {
+      val curr = translator.toModelDelta(info.curr.x - info.start.x, info.curr.y - info.start.y)
+      if (info.curr != info.prev) {
+        moveSelected(curr - prev)
       }
+      prev = curr
     }
-
-    override def reset(): Unit = prev = Point(0, 0)
   }
 
   class RotationTool extends Tool {
     // We store initial solution to avoid rounding error accumulation
     private var initialSolution: Option[Vector[Point]] = None
-    private var prevAngle: Double = 0
 
-    override def startDrag(e: MouseEvent): Unit = {
-      super.startDrag(e)
+    override def startDrag(info: DragInfo): Unit = {
       initialSolution = Some(solution)
-      prevAngle = 0
     }
 
-    override def endDrag(): Unit = {
-      super.endDrag()
+    override def endDrag(info: DragInfo): Unit = {
       initialSolution = None
     }
 
-    override def dragged(e: MouseEvent): Unit = {
-      super.dragged(e)
+    override def dragged(info: DragInfo): Unit = {
       initialSolution foreach { bs =>
-        rect.foreach { sel =>
-          val angle = (sel._1.x - sel._2.x) / 100.0
-          solution = RotationSolver.rotate_by(angle, bs)
-          prevAngle = angle
-        }
+        val angle = (info.start.x - info.curr.x) / 100.0
+        solution = RotationSolver.rotate_by(angle, bs)
       }
-      updateStatus()
     }
   }
 
   private val selectionTool = new SelectionTool
   private val moveTool = new MoveTool
   private val rotationTool = new RotationTool
-  private var tool = new Tool() {}
 
   private var guidesMode = "no"
 
@@ -220,28 +239,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     p.setDoubleBuffered(true)
     p.setPreferredSize(new Dimension(1730, 960))
 
-    p.addMouseListener(new MouseListener() {
-      override def mouseClicked(me: MouseEvent): Unit = {
-        println(translator.toModel(me.getX, me.getY))
-      }
-
-      override def mouseEntered(e: MouseEvent): Unit = {}
-
-      override def mouseExited(e: MouseEvent): Unit = {}
-
-      override def mousePressed(e: MouseEvent): Unit = {
-        p.requestFocus()
-        tool.startDrag(e)
-      }
-
-      override def mouseReleased(e: MouseEvent): Unit = tool.endDrag()
-    })
-
-    p.addMouseMotionListener(new MouseMotionListener() {
-      override def mouseDragged(e: MouseEvent): Unit = tool.dragged(e)
-
-      override def mouseMoved(e: MouseEvent): Unit = {}
-    })
+    p.addMouseListener(toolHandler)
+    p.addMouseMotionListener(toolHandler)
 
     p.addKeyListener(new KeyListener() {
       override def keyTyped(e: KeyEvent): Unit = {}
@@ -291,10 +290,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       mnemonic foreach button.setMnemonic
       tb.add(button)
       buttonGroup.add(button)
-      button.addActionListener(e => {
-        tool.endDrag()
-        tool = newTool
-      })
+      button.addActionListener(e => toolHandler.setTool(newTool))
     }
 
     tb.add({
