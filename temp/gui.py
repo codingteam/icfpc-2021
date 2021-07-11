@@ -175,7 +175,7 @@ class Window:
 		try:
 			solution_json = json.load( open(solution_fname) )
 			self.dstp = solution_json['vertices']
-			if 'bonuses' in solution_json:
+			if 'bonuses' in solution_json and solution_json['bonuses']:
 				for bonus in solution_json['bonuses']:
 					initial_bonuses[ bonus['bonus'] ] = bonus['problem']
 		except:
@@ -375,7 +375,7 @@ class Window:
 			for p1,p2 in self.problem['figure']['edges']:
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				total_epsilon += 1000000*abs(dstd*1.0/srcd - 1)
-			global_epsilon_valid = total_epsilon <= self.problem['epsilon'] * len(self.problem['figure']['edges'])
+			global_epsilon_valid = total_epsilon <= self.problem['epsilon']+.0000001 * len(self.problem['figure']['edges'])
 
 		global_whitelist_vertex = None
 		if self.bonusWIDVar.get() != "": # We have WALLHACK, check if there's 1 sticky vertex
@@ -394,7 +394,7 @@ class Window:
 
 			# check stretching
 			srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
-			epsilon_valid = 1000000*abs(dstd*1.0/srcd - 1) <= self.problem['epsilon']
+			epsilon_valid = 1000000*abs(dstd*1.0/srcd - 1) <= self.problem['epsilon']+.0000001
 			if not epsilon_valid: stats_overstretched += 1
 
 			# check hole
@@ -547,7 +547,7 @@ class Window:
 				totaleps += e
 				if maxeps is None or maxeps < e:
 					maxeps, maxp1,maxp2, maxsrcd,maxdstd = e, p1,p2, srcd,dstd
-			if totaleps > self.problem['epsilon'] * len(self.problem['figure']['edges']):
+			if totaleps > (self.problem['epsilon']+.0000001) * len(self.problem['figure']['edges']):
 				self.unstretch_edge_1step( maxp1,maxp2, maxsrcd,maxdstd, dontmove_list, round_to_int )
 		else: # unstrech all the edges
 			for p1,p2 in self.problem['figure']['edges']:
@@ -555,7 +555,7 @@ class Window:
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				if dstd == 0: dstd = 0.1 # avoid zero division
 				e = dstd*1.0/srcd - 1
-				if abs(e)*1000000 > self.problem['epsilon'] or self.unstretchallVar.get():
+				if abs(e)*1000000 > self.problem['epsilon']+.0000001 or self.unstretchallVar.get():
 					self.unstretch_edge_1step( p1,p2, srcd,dstd, dontmove_list, round_to_int )
 
 	# Stuff elements that are outside of the figure into the figure
