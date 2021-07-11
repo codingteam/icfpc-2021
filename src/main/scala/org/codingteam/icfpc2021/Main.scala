@@ -6,6 +6,7 @@ import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.visualizer.Visualizer
 import org.codingteam.icfpc2021.triangles.FindTriangles
 import org.codingteam.icfpc2021.genetic_solver.GeneticSolverCli
+import org.codingteam.icfpc2021.sat_solver.SatSolverCli
 
 import java.nio.file.Path
 
@@ -14,6 +15,7 @@ object Main extends App {
     case Array("genetic-solver", path)  => GeneticSolverCli.process(Path.of(path))
     case Array("find-triangles", path)  => FindTriangles.process(Path.of(path))
     case Array("rotation-solver", path) => RotationSolver.solve(Path.of(path))
+    case Array("sat-solver", path) => SatSolverCli.solve(Path.of(path))
     case Array("validator", problemPath, solutionPath) =>
       SolutionValidator.validateFile(
         Path.of(problemPath),
