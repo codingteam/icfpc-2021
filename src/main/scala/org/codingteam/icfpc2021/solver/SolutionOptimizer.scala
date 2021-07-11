@@ -181,7 +181,7 @@ class SolutionOptimizer(problem: Problem) {
         }
       }
     )
-    val results = validSols.map(sol => evaluator.evaluate(sol))
+    val results = validSols.map(sol => evaluator.evaluate(sol) - validator.invalidnessMeasure(sol))
     //println(s"R: $results")
     val bestIdx = results.zipWithIndex.minBy(_._1)._2
     validSols(bestIdx).vertices

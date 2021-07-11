@@ -145,6 +145,11 @@ package object icfpc2021 {
       Point(BigDecimal(x).setScale(0, RoundingMode.HALF_EVEN).toBigInt, BigDecimal(y).setScale(0, RoundingMode.HALF_EVEN).toBigInt)
     }
 
+    def normalized(): PointD = {
+      val norm = abs()
+      PointD(x.toDouble / norm, y.toDouble / norm)
+    }
+
     def *(k: Double): PointD = {
       PointD(k * x, k * y)
     }
@@ -243,6 +248,13 @@ package object icfpc2021 {
       val ySum = hole.view.map(_.y).sum
       PointD(xSum.toDouble / hole.size, ySum.toDouble / hole.size)
     }
+
+    lazy val holeEdges : Seq[Edge] = {
+      val n = hole.length
+      val edges = (0 until (n-1)).map(i => Edge(i, i+1)) ++ List(Edge(n-1, 0))
+      edges
+    }
+
     val figureVerticesCount: Int = figure.vertices.size
 
     private val ClearColor: Color = Color.BLACK
