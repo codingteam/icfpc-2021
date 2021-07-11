@@ -221,6 +221,12 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
           g2.drawRect(x1, y1, x2 - x1, y2 - y1)
         }
 
+        g2.setColor(Color.RED)
+        for (i <- selectionTool.selectedFigureVertices) {
+          val (x, y) = translator.toScreen(solution(i))
+          g.fillOval(x - 4, y - 4, 8, 8)
+        }
+
         def drawGuide(from: Int, to: Int): Unit = {
           val pFrom = translator.toScreen(solution(from))
           val pTo = translator.toScreen(solution(to))
