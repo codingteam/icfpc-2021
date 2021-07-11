@@ -536,6 +536,16 @@ class Window:
 		self.update_lines_and_stats()
 
 	# Unstretch overstretched/understretched edges:
+	def get_total_unstretchness(self, dstp):
+		srcp = self.problem['figure']['vertices']
+		result = 0
+		for p1,p2 in self.problem['figure']['edges']:
+			srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(dstp[p1],dstp[p2])
+			if dstd == 0: dstd = 0.1 # avoid zero division
+			e = 1000000*abs(dstd*1.0/srcd - 1)
+			if e > self.problem['epsilon']+.0000001:
+				result += e
+		return result
 	def unstretch_edge_1step(self, p1,p2, srcd,dstd, dontmove_list, round_to_int):
 		x1,y1 = self.dstp[p1]
 		x2,y2 = self.dstp[p2]
@@ -566,6 +576,27 @@ class Window:
 					maxeps, maxp1,maxp2, maxsrcd,maxdstd = e, p1,p2, srcd,dstd
 			if totaleps > (self.problem['epsilon']+.0000001) * len(self.problem['figure']['edges']):
 				self.unstretch_edge_1step( maxp1,maxp2, maxsrcd,maxdstd, dontmove_list, round_to_int )
+		elif self.intunstretchVar.get(): # special integer unstretch - just one edge
+			initial_unstretchness = self.get_total_unstretchness(self.dstp)
+			min_unstretchness = None
+			for p1,p2 in self.problem['figure']['edges']:
+				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
+				if p1>p2: p1,p2=p2,p1
+				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
+				e = 1000000*abs(dstd*1.0/srcd - 1)
+				if e > self.problem['epsilon']+.0000001:
+					x1,y1=self.dstp[p1]
+					x2,y2=self.dstp[p2]
+					for nx1 in (x1-1,x1,x1+1):
+						for ny1 in (y1-1,y1,y1+1):
+							for nx2 in (x2-1,x2,x2+1):
+								for ny2 in (y2-1,y2,y2+1):
+									ndstp=self.dstp[:p1] + [(nx1,ny1)] + self.dstp[p1+1:p2] + [(nx2,ny2)] + self.dstp[p2+1:]
+									cur_unstretchness = self.get_total_unstretchness(ndstp)
+									if min_unstretchness is None or min_unstretchness > cur_unstretchness:
+										min_unstretchness, mindstp = cur_unstretchness, ndstp
+			if min_unstretchness is not None:
+				self.dstp = mindstp
 		else: # unstrech all the edges
 			for p1,p2 in self.problem['figure']['edges']:
 				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
