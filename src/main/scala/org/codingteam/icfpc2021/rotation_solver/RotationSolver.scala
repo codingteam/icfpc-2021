@@ -9,7 +9,10 @@ import scala.math.{Pi, cos, sin}
 
 object RotationSolver {
   /// Rotate by given number of radians.
-  private def rotate_by(angle: Double, vertices: Vector[Point]): Vector[Point] = {
+  def rotate_by(angle: Double, vertices: Vector[Point]): Vector[Point] = {
+    if (angle == 0)
+      return vertices
+
     val center_x = vertices.map(_.x.toDouble).sum / vertices.size.toDouble
     val center_y = vertices.map(_.y.toDouble).sum / vertices.size.toDouble
 

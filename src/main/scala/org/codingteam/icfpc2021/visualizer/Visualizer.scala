@@ -3,6 +3,7 @@ package org.codingteam.icfpc2021.visualizer
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
+import org.codingteam.icfpc2021.rotation_solver.RotationSolver
 import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer}
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
@@ -95,8 +96,38 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     override def reset(): Unit = prev = Point(0, 0)
   }
 
+  class RotationTool extends Tool {
+    // We store initial solution to avoid rounding error accumulation
+    private var initialSolution: Option[Vector[Point]] = None
+    private var prevAngle: Double = 0
+
+    override def startDrag(e: MouseEvent): Unit = {
+      super.startDrag(e)
+      initialSolution = Some(solution)
+      prevAngle = 0
+    }
+
+    override def endDrag(): Unit = {
+      super.endDrag()
+      initialSolution = None
+    }
+
+    override def dragged(e: MouseEvent): Unit = {
+      super.dragged(e)
+      initialSolution foreach { bs =>
+        rect.foreach { sel =>
+          val angle = (sel._1.x - sel._2.x) / 100.0
+          solution = RotationSolver.rotate_by(angle, bs)
+          prevAngle = angle
+        }
+      }
+      updateStatus()
+    }
+  }
+
   private val selectionTool = new SelectionTool
   private val moveTool = new MoveTool
+  private val rotationTool = new RotationTool
   private var tool = new Tool() {}
 
   private var guidesMode = "no"
@@ -277,6 +308,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
+    addTool("Rotate", rotationTool, Some('R'))
 
     tb.add(makeAction("Mirror", () => foldSelectedIn()))
     tb.add(makeAction("Wobble", () => wobbleSelected()))
