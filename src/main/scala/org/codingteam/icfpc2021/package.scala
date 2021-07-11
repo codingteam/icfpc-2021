@@ -14,7 +14,7 @@ package object icfpc2021 {
   object Quadrant extends Enumeration {
     type Quadrant = Value
 
-    val First, Second, Third, Fourth = Value
+    val First, Second, Third, Fourth, None = Value
   }
 
   /// Next quadrant, counter-clockwise
@@ -25,6 +25,7 @@ package object icfpc2021 {
       case Second => Third;
       case Third => Fourth;
       case Fourth => First;
+      case None => None
     }
   }
 
@@ -74,9 +75,9 @@ package object icfpc2021 {
         Second
       } else if (x < 0 && y <= 0) {
         Third
-      } else /* if (x >= 0 && y < 0) */ {
+      } else if (x >= 0 && y < 0) {
         Fourth
-      }
+      } else None // x == 0 && y == 0
     }
   }
 
