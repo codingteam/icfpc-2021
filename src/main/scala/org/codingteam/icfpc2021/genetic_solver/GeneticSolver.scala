@@ -2,7 +2,6 @@ package org.codingteam.icfpc2021.genetic_solver
 
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 
 import java.nio.file.{Files, Path}
 import scala.util.Random
@@ -94,7 +93,6 @@ class GeneticSolver(problem: Problem) {
 
   private def evolve(): Option[Creature] = {
     val validator = new SolutionValidator(problem)
-    val evaluator = new SolutionEvaluator(problem)
 
     var generation = produceInitialGeneration()
 
@@ -104,13 +102,8 @@ class GeneticSolver(problem: Problem) {
 
         val solution = creatureToSolution(generation.head.creature)
         val valid = validator.validate(solution)
-        val dislikes: BigInt = if (valid) {
-          evaluator.evaluate(solution)
-        } else {
-          -1
-        }
 
-        println(f"[$i%7d]  Best score: $score%6d  Dislikes: $dislikes%6d  Valid: $valid")
+        println(f"[$i%7d]  Best score: $score%6d  Valid: $valid")
       }
 
       if (generation.head.score == 0) {
