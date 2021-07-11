@@ -1,12 +1,9 @@
 package org.codingteam.icfpc2021
 
-import org.scalatest._
-import flatspec._
-import matchers._
-import java.math.BigInteger
-
-import org.codingteam.icfpc2021.{Problem, Solution, Json}
 import org.codingteam.icfpc2021.validator._
+import org.scalatest._
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
 class SolutionValidatorSpec extends AnyFlatSpec with should.Matchers {
   "SolutionValidator" should "accept the Lambdaman solution from the spec" in {
@@ -34,5 +31,11 @@ class SolutionValidatorSpec extends AnyFlatSpec with should.Matchers {
     val validator = new SolutionValidator(problem)
 
     validator.validate(solution) shouldBe true
+  }
+
+  it should "reject a bad solution for the 14th problem" in {
+    val problem = Json.parseProblem("""{"hole":[[14,10],[21,6],[28,1],[36,0],[44,0],[43,8],[44,16],[44,24],[39,35],[30,40],[39,43],[27,49],[20,49],[10,43],[2,39],[0,32],[0,5],[7,12]],"epsilon":1249,"figure":{"edges":[[0,1],[0,2],[1,3],[1,4],[2,3],[3,4]],"vertices":[[24,0],[0,15],[44,20],[20,35],[24,6]]}}""".stripMargin)
+    val solution = Json.parseSolution("""{"vertices":[[20,40],[44,25],[0,20],[24,5],[20,34]],"bonuses":null}""")
+    new SolutionValidator(problem).validate(solution) shouldBe false
   }
 }
