@@ -2,24 +2,28 @@ package org.codingteam.icfpc2021.force_solver
 
 import org.codingteam.icfpc2021.{Edge, PointD, Problem, Solution}
 
+import java.awt.Polygon
 import scala.collection.mutable
+import scala.util.Random
 
 object ForceBasedSolver {
+  val random = new Random()
   def stepForward(problem: Problem, solution: Solution, steps: Int = 100): Solution = {
     val forces = mutable.Map[Int, PointD]().withDefaultValue(PointD(0, 0))
     val problemVertices = problem.figure.vertices.map(_.toPointD())
     var vertices = solution.vertices.map(_.toPointD())
 
-    // Points outside the hole are trying to move inward
-    for (i <- problem.figure.vertices.indices) {
-      if (! problem.isPointInHole(solution.vertices(i))) {
-        forces(i) += problem.holeCenter - vertices(i)
-      }
-    }
+    val hole = new Polygon(problem.hole.map(_.x.intValue).toArray, problem.hole.map(_.y.intValue).toArray, problem.hole.size)
 
     // Stretched/compressed edges are trying to restore their lengths
     for (_ <- 0 until steps) {
-      val edgeForces = mutable.Map[Int, PointD]().withDefaultValue(PointD(0, 0))
+      // Points outside the hole are trying to move inward
+      for ((v, i) <- vertices.view.zipWithIndex) {
+        if (!hole.contains(v.x, v.y)) {
+          forces(i) = (problem.holeCenter - v) / 10.0
+        }
+      }
+
       for (Edge(v1, v2) <- problem.figure.edges) {
         val problemDist = (problemVertices(v2) - problemVertices(v1)).abs()
         val solV1 = vertices(v1)
@@ -27,19 +31,21 @@ object ForceBasedSolver {
         val solutionDist = (solV2 - solV1).abs()
         val forceAbs = -(problemDist - solutionDist) / 2
 
-        edgeForces(v1) += (solV2 - solV1).normalize() * forceAbs
-        edgeForces(v2) += (solV1 - solV2).normalize() * forceAbs
+        if (solutionDist != 0.0) {
+          forces(v1) += (solV2 - solV1).normalize() * forceAbs
+          forces(v2) += (solV1 - solV2).normalize() * forceAbs
+        } else {
+          val heading = PointD(random.between(-1, 2), random.between(-1, 2))
+          forces(v1) += heading.normalize() * forceAbs
+          forces(v1) -= heading.normalize() * forceAbs
+        }
       }
 
       val invN = 1.0 / (2* problem.figure.edges.length.toDouble)
-      val avgForce = edgeForces.values.reduce(_+_) * invN
-
-      for (i <- edgeForces.keys) {
-        edgeForces(i) -= avgForce
-      }
+      val avgForce = forces.values.reduce(_+_) * invN
 
       for (i <- forces.keys) {
-        forces(i) += edgeForces(i)
+        forces(i) -= avgForce
       }
 
       vertices = applyForces(vertices, forces)
