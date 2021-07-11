@@ -1,4 +1,18 @@
 [ {
+  "id" : "cb40353c-2e22-408f-b3cd-ceb5a24ed9c2",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "BREAK_A_LEG",
+      "problem" : 21
+    }, {
+      "bonus" : "WALLHACK",
+      "problem" : 38
+    } ]
+  }
+}, {
   "id" : "26e3e2ed-174a-475c-a8bd-9bf5cce2d2cf",
   "solution" : {
     "state" : "VALID",

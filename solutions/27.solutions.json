@@ -1,0 +1,12 @@
+[ {
+  "id" : "93ef0c6c-3780-48ec-9e6a-afee1bfecc42",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 3860,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "BREAK_A_LEG",
+      "problem" : 23
+    } ]
+  }
+} ]

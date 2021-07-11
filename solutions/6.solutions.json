@@ -1,4 +1,36 @@
 [ {
+  "id" : "1d59220e-8e8b-4c5f-8d69-868e99fef994",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 20203,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "106afa2e-6179-4068-af7f-d12a9b73c39d",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "bad JSON",
+    "awarded_bonuses" : null
+  }
+}, {
+  "id" : "5d50172f-e8c1-42e9-a5b3-b8a73683a640",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 20871,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "3f8109cd-4ec9-4186-9cf3-8bc7dbe99f0e",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "The edge at (93,89)-(102,109) is not inside the hole.",
+    "awarded_bonuses" : null
+  }
+}, {
   "id" : "35bf3848-c880-4df4-aa80-ad6043d00fa4",
   "solution" : {
     "state" : "VALID",
