@@ -132,8 +132,12 @@ object DumbSolver {
       val p = figure.vertices(i)
       val p1 = figure.vertices(neighbours(0))
       val p2 = figure.vertices(neighbours(1))
-      val q = mirror(p, p1, p2)
-      Some(figure.copy(vertices = figure.vertices.updated(i, q)))
+      if ((p1 distanceSq p2) < 1) {
+        None
+      } else {
+        val q = mirror(p, p1, p2)
+        Some(figure.copy(vertices = figure.vertices.updated(i, q)))
+      }
     } else {
       None
     }
