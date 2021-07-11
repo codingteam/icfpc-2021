@@ -8,7 +8,15 @@ import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer}
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
-import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener}
+import java.awt.event.{
+  KeyEvent,
+  KeyListener,
+  MouseEvent,
+  MouseListener,
+  MouseMotionListener,
+  MouseWheelEvent,
+  MouseWheelListener,
+}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.nio.file.{Files, Path, Paths}
 import java.io.File
@@ -77,6 +85,9 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     }
 
     override def mouseMoved(e: MouseEvent): Unit = {
+      val coords = translator.toModel(e.getX, e.getY)
+      coordinatesText.setText(s"${coords.x}, ${coords.y}")
+
       tool.mouseMoved(e.getX, e.getY)
       updateStatus()
     }
@@ -283,6 +294,13 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     p.addMouseListener(toolHandler)
     p.addMouseMotionListener(toolHandler)
 
+    p.addMouseWheelListener(new MouseWheelListener() {
+       override def mouseWheelMoved(e: MouseWheelEvent): Unit = {
+         // TODO: zoom
+         updateStatus()
+       }
+    })
+
     p.addKeyListener(new KeyListener() {
       override def keyTyped(e: KeyEvent): Unit = {}
       override def keyPressed(e: KeyEvent): Unit = {
@@ -368,12 +386,17 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   private lazy val solutionDislikesText =
     new JTextField().tap(tf => tf.setColumns(5))
 
+  private lazy val coordinatesText =
+    new JTextField().tap(tf => tf.setColumns(5))
+
   private lazy val statusPanel = {
     val tb = new JToolBar()
     tb.add(new JLabel("Valid:"))
     tb.add(solutionIsValidText)
     tb.add(new JLabel("Dislikes count:"))
     tb.add(solutionDislikesText)
+    tb.add(new JLabel("Coordinates"))
+    tb.add(coordinatesText)
     tb
   }
 
