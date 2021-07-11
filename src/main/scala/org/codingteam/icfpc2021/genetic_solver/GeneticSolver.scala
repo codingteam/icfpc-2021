@@ -9,10 +9,12 @@ import scala.util.Random
 import scala.collection.immutable.TreeSet
 
 class GeneticSolver(problem: Problem) {
-  private val MaxIterations: Int = 100000;
-  private val GenerationSize: Int = 1000;
-  /// How many of creature's genes should change when mutating.
-  private val MutationPercentage: Double = 0.1;
+  private val MaxIterations: Int = 100000
+  private val GenerationSize: Int = 1000
+  /// How many of creature's genes should change when mutating
+  private val MutationPercentage: Double = 0.1
+  /// How many of creature's genes should be replaced when crossing with another creature
+  private val CrossoverPercentage: Double = 0.1
 
   /// Squared lengths of edges.
   private val edges_sq_lengths: Vector[(Edge, BigInt)] = {
@@ -78,6 +80,18 @@ class GeneticSolver(problem: Problem) {
     mutable.toVector
   }
 
+  private def cross(a: Creature, b: Creature): Creature = {
+    val genes_to_copy = 1.max((a.size.toDouble * CrossoverPercentage).toInt)
+    val src_indices = Random.shuffle((0 until a.size).toVector).take(genes_to_copy)
+    val dst_indices = Random.shuffle((0 until b.size).toVector).take(genes_to_copy)
+
+    var mutable = b.toArray
+    for ((src, dst) <- src_indices.zip(dst_indices)) {
+      mutable(dst) = a(src)
+    }
+    mutable.toVector
+  }
+
   private def evolve(): Option[Creature] = {
     val validator = new SolutionValidator(problem)
     val evaluator = new SolutionEvaluator(problem)
@@ -108,8 +122,9 @@ class GeneticSolver(problem: Problem) {
         if (Random.nextBoolean()) {
           ScoredCreature(mutate(scored.creature))
         } else {
-          // crossover
-          scored
+          val another_idx = Random.nextInt(generation.size)
+          val another = generation.toIndexedSeq(another_idx)
+          ScoredCreature(cross(scored.creature, another.creature))
         }
       }
 
