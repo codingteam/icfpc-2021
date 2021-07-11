@@ -2,8 +2,8 @@ package org.codingteam.icfpc2021.validator
 
 import org.codingteam.icfpc2021._
 
-import java.awt.{Color, Polygon}
 import java.awt.image.BufferedImage
+import java.awt.{Color, Polygon}
 import java.nio.file.{Files, Path}
 import scala.swing.Graphics2D
 
@@ -144,14 +144,11 @@ class SolutionValidator(problem: Problem) {
   }
 
   def validateHole(solution: Solution): Boolean = {
-    drawSolutionToFigure(solution)
-    // compare raster arrays.
-    val clearColorRGB = ClearColor.getRGB
-    for (i <- figureImageArray.indices) {
-      if (figureImageArray(i) != clearColorRGB && holeImageArray(i) == clearColorRGB)
-        return false
-    }
-    true
+    solution.vertices.forall(problem.isPointInHoleExact) && problem.figure.edges.forall(edge => {
+      val v1 = solution.vertices(edge.vertex1)
+      val v2 = solution.vertices(edge.vertex2)
+      !problem.segmentGoesOutsideTheHole((v1, v2))
+    })
   }
 
   /**
