@@ -6,6 +6,7 @@ import org.codingteam.icfpc2021.validator.SolutionValidator
 import java.nio.file.{Files, Path}
 import scala.util.Random
 import scala.collection.immutable.TreeSet
+import scala.collection.concurrent.TrieMap
 
 class GeneticSolver(problem: Problem) {
   private val MaxIterations: Int = 100000
@@ -38,13 +39,35 @@ class GeneticSolver(problem: Problem) {
   /// solution to the problem.
   private type Score = BigInt
 
-  private case class ScoredCreature(creature: Creature) {
-    lazy val score: BigInt = {
-      val creatureVertices: Vector[Point] = creature.map(problem.hole(_))
+  private val validSegments: TrieMap[(Point, Point), Boolean] = TrieMap()
+  private def segmentGoesOutsideTheHole(segment: (Point, Point)): Boolean = {
+    var (p1, p2) = segment
+    if (p1.x > p2.x) {
+      val temp = p1
+      p1 = p2
+      p2 = temp
+    } else if (p1.x == p2.x) {
+      if (p1.y > p2.y) {
+        val temp = p1
+        p1 = p2
+        p2 = temp
+      }
+    }
+    val new_segment = (p1, p2)
+    validSegments.getOrElseUpdate(new_segment, problem.segmentGoesOutsideTheHole(new_segment))
+  }
 
-      (for ((edge, expected_length) <- edges_sq_lengths) yield {
-        val p1 = creatureVertices(edge.vertex1)
-        val p2 = creatureVertices(edge.vertex2)
+  private def calculateScore(creature: Creature): Score = {
+    val creatureVertices: Vector[Point] = creature.map(problem.hole(_))
+
+    (for ((edge, expected_length) <- edges_sq_lengths) yield {
+      val p1 = creatureVertices(edge.vertex1)
+      val p2 = creatureVertices(edge.vertex2)
+
+      if (segmentGoesOutsideTheHole((p1, p2))) {
+        // Severely punish any solution where edges go outside the hole
+        expected_length * expected_length
+      } else {
         val actual_length = p1.distanceSq(p2)
         val diff = actual_length - expected_length
 
@@ -54,8 +77,12 @@ class GeneticSolver(problem: Problem) {
         } else {
           diff
         }
-      }).sum
-    }
+      }
+    }).sum
+  }
+
+  private case class ScoredCreature(creature: Creature) {
+    lazy val score: Score = calculateScore(creature)
   }
   private object ScoredCreature {
     implicit def orderingScoredCreature(implicit ord: Ordering[Score]): Ordering[ScoredCreature] =
@@ -103,10 +130,10 @@ class GeneticSolver(problem: Problem) {
     var generation = produceInitialGeneration()
 
     // Last best score and the iteration at which it was attained.
-    var last_best_score: (BigInt, Int) = (generation.head.score, 0)
+    var last_best_score: (Score, Int) = (generation.head.score, 0)
     var iterations_without_improvement = 0
 
-    var absolute_best: (BigInt, Creature) = (generation.head.score, generation.head.creature)
+    var absolute_best: (Score, Creature) = (generation.head.score, generation.head.creature)
 
     for (i <- 0 until MaxIterations) {
       if (generation.head.score < last_best_score._1) {
