@@ -15,6 +15,7 @@ import java.awt.{BorderLayout, Color, Dimension, Graphics, GridLayout}
 import java.nio.file.{Files, Path, Paths}
 import java.io.File
 import javax.swing._
+import scala.collection.immutable
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.swing.Graphics2D
@@ -199,6 +200,20 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     p
   }
 
+  object VerticleLocker {
+    var lockedVertices = immutable.IntMap[Point]()
+
+    def add(a: mutable.BitSet): Unit =
+      lockedVertices ++= a.unsorted.map({ x=> (x, solution(x)) }).toMap
+
+    def remove(a: mutable.BitSet): Unit = lockedVertices --= a
+
+    def restore(): Unit =
+      solution = solution.zipWithIndex.map { case (vert, i) => lockedVertices.getOrElse(i, vert) }
+
+    def reset(): Unit = lockedVertices = immutable.IntMap[Point]()
+  }
+
   private lazy val mainPanel = {
     val p = new JPanel()
     p.setLayout(new BorderLayout())
@@ -238,6 +253,12 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
         for (i <- selectionTool.selectedFigureVertices) {
           val (x, y) = translator.toScreen(solution(i))
           g.fillOval(x - 4, y - 4, 8, 8)
+        }
+
+        g2.setColor(Color.BLUE)
+        for (i <- VerticleLocker.lockedVertices.keys) {
+          val (x, y) = translator.toScreen(solution(i))
+          g.fillOval(x - 3, y - 3, 6, 6)
         }
 
         def drawGuide(from: Int, to: Int): Unit = {
@@ -385,6 +406,10 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       repaint()
       updateStatus()
     }))
+
+    tb.add(makeAction("Lock", () => VerticleLocker.add(selectionTool.selectedFigureVertices)))
+    tb.add(makeAction("Unlock", () => VerticleLocker.remove(selectionTool.selectedFigureVertices)))
+
     tb
   }
 
@@ -409,6 +434,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   }
 
   private def updateStatus(): Unit = {
+    VerticleLocker.restore()
+
     val sol = Solution(solution, null)
     val validator = new SolutionValidator(problem)
     val evaluator = new SolutionEvaluator(problem)
@@ -547,6 +574,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     originalEdgeLengths = problem.figure.edges.map(e => solution(e.vertex1) distanceSq solution(e.vertex2))
 
     setTitle(s"Visualizer - ${problemFile.getFileName.toString}")
+    VerticleLocker.reset()
     updateStatus()
 
     selectionTool.reset()
