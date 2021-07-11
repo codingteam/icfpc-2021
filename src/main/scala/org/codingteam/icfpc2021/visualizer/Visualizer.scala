@@ -4,19 +4,11 @@ import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
 import org.codingteam.icfpc2021.rotation_solver.RotationSolver
-import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer, SolutionOptimizerPanel}
+import org.codingteam.icfpc2021.solver.{DumbSolver, LocationOptimizer, SolutionOptimizer, SolutionOptimizerPanel}
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
-import java.awt.event.{
-  KeyEvent,
-  KeyListener,
-  MouseEvent,
-  MouseListener,
-  MouseMotionListener,
-  MouseWheelEvent,
-  MouseWheelListener,
-}
+import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener, MouseWheelEvent, MouseWheelListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics, GridLayout}
@@ -387,6 +379,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Force solver", () => runForceSolver()))
     tb.add(makeAction("Try Correct", () => runCorrector()))
     tb.add(makeAction("Optimize", () => runOptimizer()))
+    tb.add(makeAction("Optimize Location", () => runLocationOptimizer()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
       repaint()
@@ -455,6 +448,13 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     val optimizer = new SolutionOptimizer(problem)
     val options = optimizerOptionsPanel.options
     solution = optimizer.optimizeOnce(solution, options)
+    repaint()
+    updateStatus()
+  }
+
+  private def runLocationOptimizer(): Unit = {
+    val optimizer = new LocationOptimizer(problem)
+    solution = optimizer.descent(solution, step = 0.1, minGradient = 1.0, maxSteps=100)
     repaint()
     updateStatus()
   }
