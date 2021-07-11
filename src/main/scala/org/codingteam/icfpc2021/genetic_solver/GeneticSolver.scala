@@ -184,7 +184,7 @@ class GeneticSolver(problem: Problem) {
         }
       }
 
-      generation = (generation ++ newGeneration).take(GenerationSize)
+      generation = TreeSet.from((generation.toSeq ++ newGeneration.toSeq).distinctBy(_.score)).take(GenerationSize)
     }
 
 
