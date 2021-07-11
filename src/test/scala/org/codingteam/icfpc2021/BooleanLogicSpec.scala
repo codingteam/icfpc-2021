@@ -8,7 +8,7 @@ import org.codingteam.icfpc2021.sat_solver._
 
 class BooleanLogicSpec extends AnyFlatSpec with should.Matchers {
   "BooleanLogic.toCNF" should "return nothing if not given anything" in {
-    val logic = new BooleanLogic()
+    val logic = BooleanLogic()
     (logic.toCNF()) should equal (AlwaysTrue)
   }
 

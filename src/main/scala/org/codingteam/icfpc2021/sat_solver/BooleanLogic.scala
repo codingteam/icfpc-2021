@@ -1,7 +1,5 @@
 package org.codingteam.icfpc2021.sat_solver
 
-case class Impossible(private val msg: String) extends Exception(msg)
-
 sealed abstract class Expression {
   def toCNF(): Expression
 }
