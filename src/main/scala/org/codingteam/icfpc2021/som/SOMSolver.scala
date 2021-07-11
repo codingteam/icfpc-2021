@@ -90,17 +90,19 @@ class SOMSolver(problem: Problem,
           }
         } else if (actualLength < minLength) {
           val d = minLength - actualLength
-          val k = -d / actualLength * 0.5 * hci
+          val k = -d / actualLength * options.edgeForceK * hci
           movePoints(k)
         } else if (actualLength > maxLength) {
           val d = actualLength - maxLength
-          val k = d / actualLength * 0.5 * hci
+          val k = d / actualLength * options.edgeForceK * hci
           movePoints(k)
         }
       }
 
-      val edge = problem.figure.edges(rnd.nextInt(problem.figure.edges.size))
-      correctEdge(edge)
+      for (_ <- 1 to options.edgeStepsPerHoleStep) {
+        val edge = problem.figure.edges(rnd.nextInt(problem.figure.edges.size))
+        correctEdge(edge)
+      }
       // Move to minimize out of hole square (?).
 
     }
@@ -113,7 +115,9 @@ class SOMSolver(problem: Problem,
 object SOMSolver {
   case class Options(stepCount: Integer = 100000,
                      startSigma: Double = 1.0,
-                     startAlpha: Double = 0.9)
+                     startAlpha: Double = 0.9,
+                     edgeForceK: Double = 0.9,
+                     edgeStepsPerHoleStep: Int = 1)
 
   val rnd = new Random
 

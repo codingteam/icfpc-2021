@@ -9,12 +9,17 @@ class SOMSolverOptionsPanel extends JPanel {
   private lazy val stepCountText = new JTextField()
   private lazy val startAlphaText = new JTextField()
   private lazy val startSigmaText = new JTextField()
+  private lazy val edgeForceKText = new JTextField()
+  private lazy val edgeStepsText = new JTextField()
+
 
   def options: SOMSolver.Options = {
     val r = for (stepCount <- stepCountText.getText.toIntOption;
                  startAlpha <- startAlphaText.getText.toDoubleOption;
-                 startSigma <- startSigmaText.getText.toDoubleOption) yield
-      SOMSolver.Options(stepCount, startAlpha, startSigma)
+                 startSigma <- startSigmaText.getText.toDoubleOption;
+                 edgeForceK <- edgeForceKText.getText.toDoubleOption;
+                 edgeSteps <- edgeStepsText.getText.toIntOption) yield
+      SOMSolver.Options(stepCount, startAlpha, startSigma, edgeForceK, edgeSteps)
     r getOrElse SOMSolver.Options()
   }
 
@@ -22,6 +27,8 @@ class SOMSolverOptionsPanel extends JPanel {
     stepCountText.setText(opts.stepCount.toString)
     startAlphaText.setText(opts.startAlpha.toString)
     startSigmaText.setText(opts.startSigma.toString)
+    edgeForceKText.setText(opts.edgeForceK.toString)
+    edgeStepsText.setText(opts.edgeStepsPerHoleStep.toString)
   }
 
   private def init(): Unit = {
@@ -35,6 +42,8 @@ class SOMSolverOptionsPanel extends JPanel {
     add("n steps", stepCountText)
     add("start alpha", startAlphaText)
     add("start sigma", startSigmaText)
+    add("edge force k", edgeForceKText)
+    add("edge steps per step", edgeStepsText)
     this.options = SOMSolver.Options()
 
     this.setBorder(new TitledBorder("SOMSolver options"))
