@@ -76,7 +76,10 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       }
     }
 
-    override def mouseMoved(e: MouseEvent): Unit = {}
+    override def mouseMoved(e: MouseEvent): Unit = {
+      tool.mouseMoved(e.getX, e.getY)
+      updateStatus()
+    }
   }
   val toolHandler = new ToolHandler()
 
@@ -84,6 +87,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     def startDrag(info: DragInfo): Unit = {}
     def endDrag(info: DragInfo): Unit = {}
     def dragged(info: DragInfo): Unit = {}
+    def mouseMoved(x: Int, y: Int): Unit = {}
     def reset(): Unit = {}
   }
 
@@ -113,9 +117,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   class MoveTool extends Tool {
     var prev: Point = Point(0, 0)
 
-    override def startDrag(info: DragInfo): Unit = {
-      prev = Point(0, 0)
-    }
+    override def startDrag(info: DragInfo): Unit = prev = Point(0, 0)
 
     override def dragged(info: DragInfo): Unit = {
       val curr = translator.toModelDelta(info.curr.x - info.start.x, info.curr.y - info.start.y)
@@ -146,9 +148,41 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     }
   }
 
+  class DragTool extends Tool {
+    private var prev: Point = Point(0, 0)
+    var hover: Option[Int] = None
+    private var move = false
+
+    override def mouseMoved(x: Int, y: Int): Unit = {
+      def distSq(xy: (Int, Int)): Int = (xy._1-x)*(xy._1-x) + (xy._2-y)*(xy._2-y)
+      val (vert, i) = solution.zipWithIndex.minBy { case (vert, i) => distSq(translator.toScreen(vert)) }
+
+      if (distSq(translator.toScreen(vert)) <= 16 * 16) {
+        hover = Some(i)
+      } else {
+        hover = None
+      }
+    }
+
+    override def dragged(info: DragInfo): Unit = {
+      hover foreach { hover =>
+        val curr = translator.toModelDelta(info.curr.x - info.start.x, info.curr.y - info.start.y)
+        selectionTool.selectedFigureVertices.clear()
+        selectionTool.selectedFigureVertices.add(hover)
+        if (info.curr != info.prev) {
+          moveSelected(curr - prev)
+        }
+        prev = curr
+      }
+    }
+
+    override def startDrag(info: DragInfo): Unit = prev = Point(0, 0)
+  }
+
   private val selectionTool = new SelectionTool
   private val moveTool = new MoveTool
   private val rotationTool = new RotationTool
+  private val dragTool = new DragTool
 
   private var guidesMode = "no"
 
@@ -175,16 +209,16 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
           g.drawString(String.valueOf(i), x, y)
         }
 
+        dragTool.hover foreach { hover =>
+          g2.setColor(Color.RED)
+          val (x, y) = translator.toScreen(solution(hover))
+          g.drawOval(x - 5, y - 5, 10, 10)
+        }
+
         selectionTool.rect foreach { sel =>
           val (x1, x2) = (sel._1.x.min(sel._2.x), sel._1.x.max(sel._2.x))
           val (y1, y2) = (sel._1.y.min(sel._2.y), sel._1.y.max(sel._2.y))
           g2.drawRect(x1, y1, x2 - x1, y2 - y1)
-        }
-
-        g2.setColor(Color.RED)
-        for (i <- selectionTool.selectedFigureVertices) {
-          val (x, y) = translator.toScreen(solution(i))
-          g.fillOval(x - 4, y - 4, 8, 8)
         }
 
         def drawGuide(from: Int, to: Int): Unit = {
@@ -306,6 +340,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     addTool("Select", selectionTool, Some('S'))
     addTool("Move", moveTool, Some('e'))
     addTool("Rotate", rotationTool, Some('R'))
+    addTool("Drag", dragTool, Some('D'))
 
     tb.add(makeAction("Mirror", () => foldSelectedIn()))
     tb.add(makeAction("Wobble", () => wobbleSelected()))
