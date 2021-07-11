@@ -110,10 +110,11 @@ class SolutionOptimizer(problem: Problem) {
 
   def correctOnce(solution: Vector[Point], options: Options): Vector[Point] = {
     val actions = possibleActions(solution, options)
-    println(s"A: $actions")
     val sols = actions.map(a => Solution(a.apply(problem, solution), null))
     val results = sols.map(sol => validator.invalidnessMeasure(sol))
-    println(s"R: $results")
+    actions.zip(results).foreach { case (a, v) =>
+      println(s"A: $a => $v")
+    }
     val bestIdx = results.zipWithIndex.minBy(_._1)._2
     sols(bestIdx).vertices
   }

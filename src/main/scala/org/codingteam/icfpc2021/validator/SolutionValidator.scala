@@ -72,7 +72,7 @@ class SolutionValidator(problem: Problem) {
 
   def invalidnessMeasure(solution: Solution) : BigInt = {
     val edgeDeltas = problem.figure.edges.map(e => calcEdgeLengthDelta(solution, e)._1.abs).sum
-    val pointsOutside = solution.vertices.count(isPointInHole)
+    val pointsOutside = solution.vertices.count(p => !isPointInHole(p))
     10 * pointsOutside + edgeDeltas
   }
 
