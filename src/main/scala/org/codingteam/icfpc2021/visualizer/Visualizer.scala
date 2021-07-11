@@ -16,6 +16,7 @@ import javax.swing._
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.swing.Graphics2D
+import scala.util.Random
 import scala.util.chaining._
 
 class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
@@ -316,6 +317,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
     tb.add(makeAction("Optimize", () => runOptimizer()))
+    tb.add(makeAction("Rnd Place", () => randomInitPlace()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
       repaint()
@@ -386,6 +388,12 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     }
   }
 
+  private def randomInitPlace(): Unit = {
+    solution = DumbSolver.randomPlace(problem, solution)
+    repaint()
+    updateStatus()
+  }
+
   private def moveSelected(delta: Point): Unit = {
     solution = solution.zipWithIndex.map { case (p, idx) =>
       if (selectionTool.selectedFigureVertices.contains(idx)) p + delta else p
@@ -412,8 +420,10 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     for (index <- selectionTool.selectedFigureVertices) {
       val res = DumbSolver.wobbleOne(problem, solution, index, delta=20)
       if (res.length >= 1) {
+        val random = new Random()
+        val i = if (res.length > 1)  {random.nextInt(res.length-1)} else 0
         println("Move")
-        solution = res(0)
+        solution = res(i)
       }
     }
     repaint()

@@ -1,11 +1,14 @@
 package org.codingteam.icfpc2021.solver
 
+import org.codingteam.icfpc2021.force_solver.ForceBasedSolver.random
 import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
+import org.codingteam.icfpc2021.{Edge, Figure, Point, PointD, Problem, Solution}
 
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.collection.mutable.ListBuffer
 import scala.math.{abs, sqrt}
+import scala.util.Random
+import scala.util.control.Breaks.{break, breakable}
 
 object DumbSolver {
   def brezenhem(epsilon: Double, radius: Double) : Seq[Point] = {
@@ -117,5 +120,76 @@ object DumbSolver {
       }
     }
     newPos.toSeq
+  }
+
+  def randomPlaceSome(problem: Problem, solution: Vector[Point], moveVertices: mutable.TreeSet[Int], iterations : Int =1000): Vector[Point] = {
+    val random = new Random()
+    val ourPart = problem.figure.vertices.zipWithIndex.filter { case (p,i) => moveVertices.contains(i) }
+    val ourVerts = ourPart.map(_._1)
+    val ourIdxs = ourPart.map(_._2)
+    val idxMap = ourIdxs.zipWithIndex.toMap
+    val ourEdges = problem.figure.edges.flatMap(e =>
+      if (moveVertices.contains(e.vertex1) && moveVertices.contains(e.vertex2)) {
+        val v1 = idxMap(e.vertex1)
+        val v2 = idxMap(e.vertex2)
+        Some(Edge(v1, v2))
+      } else {
+        None
+      }
+    )
+    val partialFigure = Figure(ourEdges, ourVerts)
+    val partialProblem = problem.copy(figure = partialFigure)
+    val validator = new SolutionValidator(partialProblem)
+    val sz = problem.holeRect.size.toPointD()
+    val (maxDx, maxDy) = (sz.x / 2, sz.y / 2)
+    var good = false
+    var dv = Point(0,0)
+    var i = 0
+    var currentSolution = solution
+    breakable {
+      while (!good) {
+        val dx = random.between(-maxDx, maxDx)
+        val dy = random.between(-maxDy, maxDy)
+        dv = PointD(dx, dy).round()
+
+        currentSolution = solution.zipWithIndex.map { case (p, i) => {
+            if (moveVertices.contains(i)) {
+              p + dv
+            } else {
+              p
+            }
+          }
+        }
+        val partialSolution = solution.zipWithIndex.flatMap { case (p, i) =>
+          if (moveVertices.contains(i)) {
+            Some(p + dv)
+          } else {
+            None
+          }
+        }
+        good = validator.validateHole(Solution(partialSolution, null))
+        println(s"Dv: $dv, good: $good")
+        i += 1
+        if (i > iterations) {
+          break()
+        }
+      }
+    }
+    currentSolution
+  }
+
+  def randomPlace(problem: Problem, solution : Vector[Point]) : Vector[Point] = {
+    var currentSolution = solution
+    problem.figure.triangleGroups.foreach(group => {
+        val groupIdxs = new mutable.TreeSet[Int]
+        group.foreach { case (i,j,k) => {
+          groupIdxs += i
+          groupIdxs += j
+          groupIdxs += k
+        }}
+      currentSolution = randomPlaceSome(problem, currentSolution, groupIdxs)
+      }
+    )
+    currentSolution
   }
 }
