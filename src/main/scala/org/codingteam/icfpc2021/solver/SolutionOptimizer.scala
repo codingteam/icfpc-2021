@@ -144,7 +144,7 @@ class SolutionOptimizer(problem: Problem) {
       if (validator.validate(sol)) {
         Some(sol)
       } else {
-        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices), null)
+        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices, delta=5), null)
         if (validator.validate(wobbled)) {
           Some(wobbled)
         } else {
