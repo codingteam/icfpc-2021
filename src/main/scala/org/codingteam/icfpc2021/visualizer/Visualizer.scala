@@ -16,6 +16,7 @@ import javax.swing._
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.swing.Graphics2D
+import scala.util.Random
 import scala.util.chaining._
 
 class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Codingteam ICPFC-2021") {
@@ -408,8 +409,10 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     for (index <- selectionTool.selectedFigureVertices) {
       val res = DumbSolver.wobbleOne(problem, solution, index, delta=20)
       if (res.length >= 1) {
+        val random = new Random()
+        val i = if (res.length > 1)  {random.nextInt(res.length-1)} else 0
         println("Move")
-        solution = res(0)
+        solution = res(i)
       }
     }
     repaint()
