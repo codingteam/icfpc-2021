@@ -13,7 +13,7 @@ class GeneticSolver(problem: Problem) {
   private val MaxIterations: Int = 100000
   private val GenerationSize: Int = 1000
   /// How many of creature's genes should change when mutating
-  private val MutationPercentage: Double = 0.1
+  private val MutationPercentage: Double = 0.9
   /// How many of creature's genes should be replaced when crossing with another creature
   private val CrossoverPercentage: Double = 0.1
 
