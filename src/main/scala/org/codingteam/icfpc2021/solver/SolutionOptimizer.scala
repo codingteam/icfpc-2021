@@ -2,11 +2,12 @@ package org.codingteam.icfpc2021.solver
 
 import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
+import org.codingteam.icfpc2021.rotation_solver.RotationSolver
 import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.math.{abs, sqrt}
+import scala.math.{Pi, abs, sqrt}
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -21,13 +22,19 @@ case class Wobble(vertexIndex: Int, delta: Int) extends Action {
     }
   }
 }
-case class Mirror(vertexIndex: Int) extends Action {
+case class MirrorOne(vertexIndex: Int) extends Action {
   override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
     val figure = Figure(problem.figure.edges, solution)
     DumbSolver.foldInOne(figure, vertexIndex) match {
       case None => solution
       case Some(newFigure) => newFigure.vertices
     }
+  }
+}
+
+case class Rotate(angle : Double) extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    RotationSolver.rotate_by(angle, solution)
   }
 }
 
@@ -42,13 +49,19 @@ class SolutionOptimizer(problem: Problem) {
     val mirrors = idxs.flatMap(i => {
         val neighbours = figure.vertexNeighbours(i)
         if (neighbours.length == 2) {
-          Some(Mirror(i))
+          Some(MirrorOne(i))
         } else {
           None
         }
       }
     ) : Seq[Action]
-    wobbles ++ mirrors
+
+    val rotations = (0 until 360).map(i => {
+      val angle = 2*Pi / 360.0
+      Rotate(angle)
+    })
+
+    wobbles ++ mirrors ++ rotations
   }
 
   def optimizeOnce(solution: Vector[Point]): Vector[Point] = {
