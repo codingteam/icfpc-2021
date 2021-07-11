@@ -35,9 +35,9 @@ case class MirrorOne(vertexIndex: Int) extends Action {
   }
 }
 
-case class FoldAroundEdge(v1: Int, v2: Int) extends Action {
+case class FoldAroundEdge(v1: Int, v2: Int, dir: Boolean) extends Action {
   override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
-    DumbSolver.foldAroundLine(solution, solution(v1), solution(v2))
+    DumbSolver.foldAroundLine(solution, solution(v1), solution(v2), dir)
   }
 }
 
@@ -50,6 +50,12 @@ case class Rotate(angle : Double) extends Action {
 case class Move(vector: Point) extends Action {
   override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
     solution.map(p => p + vector)
+  }
+}
+
+case class MoveSingle(vertexIndex: Int, newVertex: Point) extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    solution.updated(vertexIndex, newVertex)
   }
 }
 
@@ -74,6 +80,26 @@ case class TransposeXY() extends Action {
 class SolutionOptimizer(problem: Problem) {
   val evaluator = new SolutionEvaluator(problem)
   val validator = new SolutionValidator(problem)
+
+  def singleRotations(solution: Vector[Point], vertexIndex: Int): Seq[Action] = {
+    val p = solution(vertexIndex).toPointD()
+    val baseVertIdx = problem.figure.vertexNeighbours(vertexIndex)(0)
+    val base = solution(baseVertIdx)
+    val epsilon = problem.epsilon.toDouble
+    val radius = (p - base.toPointD()).abs()
+    DumbSolver.brezenhem(epsilon, radius).map(dv => MoveSingle(vertexIndex, base+dv))
+  }
+
+  def allSingleRotations(solution: Vector[Point]): Seq[Action] = {
+    solution.zipWithIndex.flatMap { case (p, i) =>
+      if (problem.figure.vertexNeighbours(i).length == 1) {
+        singleRotations(solution, i)
+      } else {
+        List()
+      }
+    }
+  }
+
   def possibleActions(solution: Vector[Point], options: Options): Seq[Action] = {
     val n = solution.length
     val figure = Figure(problem.figure.edges, solution)
@@ -114,14 +140,17 @@ class SolutionOptimizer(problem: Problem) {
 
     val folds =
       if (options.useFolds) {
-        problem.figure.edges.map(edge =>
-          FoldAroundEdge(edge.vertex1, edge.vertex2)
+        problem.figure.edges.flatMap(edge =>
+          List(FoldAroundEdge(edge.vertex1, edge.vertex2, true),
+            FoldAroundEdge(edge.vertex1, edge.vertex2, false))
         )
       } else {
         List()
       }
 
-    wobbles ++ mirrors ++ rotations ++ moves ++ folds ++ List(TransposeXY(), MirrorX(), MirrorY())
+    val singleRots = allSingleRotations(solution)
+
+    wobbles ++ mirrors ++ rotations ++ moves ++ folds ++ singleRots ++ List(TransposeXY(), MirrorX(), MirrorY())
   }
 
   def correctOnce(solution: Vector[Point], options: Options): Vector[Point] = {

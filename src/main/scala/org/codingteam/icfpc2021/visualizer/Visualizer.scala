@@ -394,13 +394,16 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("X<->Y", () => transposeXY()))
 
     tb.add(makeAction("Mirror Vert", () => foldSelectedIn()))
+    tb.add(makeAction("Fold 1", () => foldAroundEdge(true)))
+    tb.add(makeAction("Fold 2", () => foldAroundEdge(false)))
+    tb.add(makeAction("Mirror Edge", () => mirrorAroundEdge()))
     tb.add(makeAction("Wobble", () => wobbleSelected()))
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
     tb.add(makeAction("Try Correct", () => runCorrector()))
     tb.add(makeAction("Optimize", () => runOptimizer()))
-    tb.add(makeAction("Optimize Location", () => runLocationOptimizer()))
+    //tb.add(makeAction("Optimize Location", () => runLocationOptimizer()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
       repaint()
@@ -511,6 +514,30 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
           case None => ()
         }
       }
+      repaint()
+      updateStatus()
+    }
+  }
+
+  private def foldAroundEdge(dir: Boolean) : Unit = {
+    if (selectionTool.selectedFigureVertices.size == 2) {
+      val i1 = selectionTool.selectedFigureVertices.toIndexedSeq(0)
+      val i2 = selectionTool.selectedFigureVertices.toIndexedSeq(1)
+      val p1 = solution(i1)
+      val p2 = solution(i2)
+      solution = DumbSolver.foldAroundLine(solution, p1, p2, dir)
+      repaint()
+      updateStatus()
+    }
+  }
+
+  private def mirrorAroundEdge() : Unit = {
+    if (selectionTool.selectedFigureVertices.size == 2) {
+      val i1 = selectionTool.selectedFigureVertices.toIndexedSeq(0)
+      val i2 = selectionTool.selectedFigureVertices.toIndexedSeq(1)
+      val p1 = solution(i1)
+      val p2 = solution(i2)
+      solution = DumbSolver.mirrorAroundLine(solution, p1, p2)
       repaint()
       updateStatus()
     }

@@ -92,10 +92,10 @@ object DumbSolver {
     solution.map(p => mirror(p, p1, p2))
   }
 
-  def foldAroundLine(solution: Vector[Point], p1: Point, p2: Point): Vector[Point] = {
+  def foldAroundLine(solution: Vector[Point], p1: Point, p2: Point, dir: Boolean): Vector[Point] = {
     val dp = p2 - p1
     solution.map(p =>
-      if ((dp cross (p - p1)) < 0) {
+      if (((dp cross (p - p1)) < 0) != dir) {
         mirror(p, p1, p2)
       } else {
         p
