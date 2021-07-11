@@ -85,7 +85,7 @@ class SolutionOptimizer(problem: Problem) {
     val rotations = {
       if (options.useRotations) {
         (0 until 360).map(i => {
-          val angle = 2 * Pi / 360.0
+          val angle = i* 2 * Pi / 360.0
           Rotate(angle)
         })
       } else {
@@ -106,6 +106,16 @@ class SolutionOptimizer(problem: Problem) {
     }
 
     wobbles ++ mirrors ++ rotations ++ moves ++ List(TransposeXY(), MirrorX(), MirrorY())
+  }
+
+  def correctOnce(solution: Vector[Point], options: Options): Vector[Point] = {
+    val actions = possibleActions(solution, options)
+    println(s"A: $actions")
+    val sols = actions.map(a => Solution(a.apply(problem, solution), null))
+    val results = sols.map(sol => validator.invalidnessMeasure(sol))
+    println(s"R: $results")
+    val bestIdx = results.zipWithIndex.minBy(_._1)._2
+    sols(bestIdx).vertices
   }
 
   def optimizeOnce(solution: Vector[Point], options: Options): Vector[Point] = {

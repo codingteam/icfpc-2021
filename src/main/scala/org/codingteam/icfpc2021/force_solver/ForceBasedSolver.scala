@@ -1,5 +1,6 @@
 package org.codingteam.icfpc2021.force_solver
 
+import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.{Edge, PointD, Problem, Solution}
 
 import java.awt.Polygon
@@ -13,13 +14,13 @@ object ForceBasedSolver {
     val problemVertices = problem.figure.vertices.map(_.toPointD())
     var vertices = solution.vertices.map(_.toPointD())
 
-    val hole = new Polygon(problem.hole.map(_.x.intValue).toArray, problem.hole.map(_.y.intValue).toArray, problem.hole.size)
+    val validator = new SolutionValidator(problem)
 
     // Stretched/compressed edges are trying to restore their lengths
     for (_ <- 0 until steps) {
       // Points outside the hole are trying to move inward
       for ((v, i) <- vertices.view.zipWithIndex) {
-        if (!hole.contains(v.x, v.y)) {
+        if (!validator.isPointInHole(v)) {
           forces(i) = (problem.holeCenter - v) / 10.0
         }
       }

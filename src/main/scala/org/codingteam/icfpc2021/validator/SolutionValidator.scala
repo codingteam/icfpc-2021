@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.validator
 
 import org.codingteam.icfpc2021._
 
-import java.awt.Color
+import java.awt.{Color, Polygon}
 import java.awt.image.BufferedImage
 import java.nio.file.{Files, Path}
 import scala.swing.Graphics2D
@@ -19,7 +19,7 @@ class SolutionValidator(problem: Problem) {
   private val FillColor: Color = Color.WHITE
   private lazy val (shiftX, shiftY, scaleX, scaleY, imgSizeX, imgSizeY) = {
     require(problem.hole.nonEmpty, "Hole points list must be not empty")
-    val MaxImageSize = 4 * 1024
+    val MaxImageSize = 32 * 1024
     val Point(shiftX, shiftY) = problem.holeRect.min
     val Point(sizeX, sizeY) = problem.holeRect.size
     val (imgSizeX, scaleX) = if (sizeX > MaxImageSize)
@@ -60,23 +60,45 @@ class SolutionValidator(problem: Problem) {
     (ps.view.map(_.x.toInt).toArray, ps.view.map(_.y.toInt).toArray, ps.size)
   }
 
+  def isPointInHole(p: Point): Boolean = {
+    val hole = new Polygon(problem.hole.map(_.x.intValue).toArray, problem.hole.map(_.y.intValue).toArray, problem.hole.size)
+    hole.contains(p.x.toDouble, p.y.toDouble)
+  }
+
+  def isPointInHole(p: PointD): Boolean = {
+    val hole = new Polygon(problem.hole.map(_.x.intValue).toArray, problem.hole.map(_.y.intValue).toArray, problem.hole.size)
+    hole.contains(p.x, p.y)
+  }
+
+  def invalidnessMeasure(solution: Solution) : BigInt = {
+    val edgeDeltas = problem.figure.edges.map(e => calcEdgeLengthDelta(solution, e)._1.abs).sum
+    val pointsOutside = solution.vertices.count(isPointInHole)
+    10 * pointsOutside + edgeDeltas
+  }
+
   def validate(solution: Solution): Boolean = {
     require(solution.vertices.size == problem.figure.vertices.size, "Wrong vertices array size")
     validateEdgeLength(solution) && !hasPointsOutsideOfImage(solution) && validateHole(solution)
   }
 
-  def checkEdgeLength(solution: Solution, e: Edge): EdgeCheckResult = {
-    val K = BigInt(1000000)
+  def calcEdgeLengthDelta(solution: Solution, e: Edge): (BigInt, BigInt) = {
     val problemDist = problem.figure.vertices(e.vertex1) distanceSq problem.figure.vertices(e.vertex2)
     val solutionDist = solution.vertices(e.vertex1) distanceSq solution.vertices(e.vertex2)
     // d' in solution, d in problem.
     // abs(d' / d - 1) <= eps / 1000000
     // abs((d' - d) / d) <= eps / 1000000
     // abs((d' - d) ) * 1000000 <= d * eps
-    val correctLength = (solutionDist - problemDist).abs * K <= problemDist * problem.epsilon
+    val delta = solutionDist - problemDist
+    (delta, problemDist)
+  }
+
+  def checkEdgeLength(solution: Solution, e: Edge): EdgeCheckResult = {
+    val K = BigInt(1000000)
+    val (delta, problemDist) = calcEdgeLengthDelta(solution, e)
+    val correctLength = delta.abs * K <= problemDist * problem.epsilon
     if (correctLength) {
       Exact
-    } else if (solutionDist > problemDist) {
+    } else if (delta > 0) {
       TooLong
     } else {
       TooShort

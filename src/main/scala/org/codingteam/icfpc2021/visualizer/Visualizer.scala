@@ -385,6 +385,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
+    tb.add(makeAction("Try Correct", () => runCorrector()))
     tb.add(makeAction("Optimize", () => runOptimizer()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
@@ -454,6 +455,14 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     val optimizer = new SolutionOptimizer(problem)
     val options = optimizerOptionsPanel.options
     solution = optimizer.optimizeOnce(solution, options)
+    repaint()
+    updateStatus()
+  }
+
+  private def runCorrector(): Unit = {
+    val optimizer = new SolutionOptimizer(problem)
+    val options = optimizerOptionsPanel.options
+    solution = optimizer.correctOnce(solution, options)
     repaint()
     updateStatus()
   }
