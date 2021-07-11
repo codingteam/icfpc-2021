@@ -3,11 +3,11 @@ package org.codingteam.icfpc2021.visualizer
 import org.codingteam.icfpc2021._
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.force_solver.ForceBasedSolver
-import org.codingteam.icfpc2021.solver.DumbSolver
+import org.codingteam.icfpc2021.solver.{DumbSolver, SolutionOptimizer}
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
-import java.awt.event.{MouseEvent, MouseListener, MouseMotionListener, KeyEvent, KeyListener}
+import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener}
 import java.awt.{BorderLayout, Color, Dimension, Graphics}
 import java.nio.file.{Files, Path, Paths}
 import java.io.File
@@ -283,6 +283,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
     tb.add(makeAction("Run SOMSolver", () => runSOMSolver()))
     tb.add(makeAction("Force solver", () => runForceSolver()))
+    tb.add(makeAction("Optimize", () => runOptimizer()))
     tb.add(makeAction("Random (full)", () => {
       solution = SOMSolver.randomInitialCoords(problem).toVector
       repaint()
@@ -339,6 +340,18 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     solution = result.vertices
     repaint()
     updateStatus()
+  }
+
+  private def runOptimizer(): Unit = {
+    val validator = new SolutionValidator(problem)
+    if (validator.validate(Solution(solution, null))) {
+      val optimizer = new SolutionOptimizer(problem)
+      solution = optimizer.optimizeOnce(solution)
+      repaint()
+      updateStatus()
+    } else {
+      println("Won't optimize, solution is not valid")
+    }
   }
 
   private def moveSelected(delta: Point): Unit = {

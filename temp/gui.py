@@ -161,6 +161,21 @@ class Scale:
 		return int( max( 20/self.scale_kx, 20/self.scale_ky, 1 ) )
 	def getmidpxy(self):
 		return self.midpx, self.midpy
+	def zoomin(self, sx,sy):
+		ZOOM = 1.3
+		self.scale_kx *= ZOOM
+		self.scale_bx = self.scale_bx*ZOOM - sx*(ZOOM-1)
+		self.scale_ky *= ZOOM
+		self.scale_by = self.scale_by*ZOOM - sy*(ZOOM-1)
+	def zoomout(self, sx,sy):
+		ZOOM = 1.3
+		self.scale_kx /= ZOOM
+		self.scale_bx = self.scale_bx/ZOOM + sx*(1-1/ZOOM)
+		self.scale_ky /= ZOOM
+		self.scale_by = self.scale_by/ZOOM + sy*(1-1/ZOOM)
+	def zoommove(self, dx,dy):
+		self.scale_bx += dx
+		self.scale_by += dy
 
 class Window:
 	def __init__(self, problem_fname, solution_fname):
@@ -263,6 +278,7 @@ class Window:
 		helpLabel['text'] += "\n - Left - drag"
 		helpLabel['text'] += "\n - Middle - move"
 		helpLabel['text'] += "\n - Right - rotate"
+		helpLabel['text'] += "\n - Wheel - zoom"
 
 		self.status.pack(side=Tk.BOTTOM, fill=Tk.X)
 		rightFrame.pack(side=Tk.RIGHT, fill=Tk.Y)
@@ -311,9 +327,23 @@ class Window:
 		self.canvas.bind("<B2-Motion>", lambda ev: self.b2move(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<Button-3>", lambda ev: self.b3down(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<B3-Motion>", lambda ev: self.b3move(*self.scale.getpxy(ev.x,ev.y)))
+		self.canvas.bind("<Button-4>", lambda ev: [self.scale.zoomin(ev.x,ev.y),self.redraw_initial_canvas()])
+		self.canvas.bind("<Button-5>", lambda ev: [self.scale.zoomout(ev.x,ev.y),self.redraw_initial_canvas()])
 
 		## Draw lines, calculate stats
+		self.redraw_initial_canvas()
+		self.update_lines_and_stats()
 
+		self.root.after(100, self.ontimer)
+		self.root.mainloop()
+
+	# gui shortcut - these two lines were used too often:
+	def guihint(self, guielem, text):
+		guielem.bind("<Enter>", lambda ev: self.status.configure(text=text) )
+		guielem.bind("<Leave>", lambda ev: self.status.configure(text="") )
+
+	def redraw_initial_canvas(self):
+		self.canvas.delete("all")
 		# draw bonuses first, so that they're behind everything
 		for bonus in self.problem['bonuses']:
 			color = BONUSCOLOR.get( bonus['bonus'], '#555' )
@@ -335,16 +365,6 @@ class Window:
 			#self.canvas.create_rectangle( (sx,sy,sx,sy), outline="purple" )
 			#self.canvas.create_rectangle( (sx-1,sy-1,sx+1,sy+1), outline="#f29", fill="#f29" )
 			self.canvas.create_polygon( [sx-1,sy, sx,sy+1, sx+1,sy, sx,sy-1], outline="#f29" )
-
-		self.update_lines_and_stats()
-
-		self.root.after(100, self.ontimer)
-		self.root.mainloop()
-
-	# gui shortcut - these two lines were used too often:
-	def guihint(self, guielem, text):
-		guielem.bind("<Enter>", lambda ev: self.status.configure(text=text) )
-		guielem.bind("<Leave>", lambda ev: self.status.configure(text="") )
 
 	def update_lines_and_stats(self):
 		srcp = self.problem['figure']['vertices']
@@ -445,13 +465,22 @@ class Window:
 			if d < bigdist and ( mindist is None or mindist > d ):
 				mindist = d
 				self.dragidx = i
+		if self.dragidx is None: # clicked on empty space - assume zoom-move
+			self.zoommove = self.scale.getsxy(px,py)
 		self.b1move(px,py) # update position of the point we've dragged
 	def b1move(self, px, py):
-		if self.dragidx is None: return
-		if self.intdragVar.get():
-			px,py = int(px+0.5), int(py+0.5)
-		self.dstp[self.dragidx] = (px,py)
-		self.update_lines_and_stats()
+		if self.dragidx is not None:
+			if self.intdragVar.get():
+				px,py = int(px+0.5), int(py+0.5)
+			self.dstp[self.dragidx] = (px,py)
+			self.update_lines_and_stats()
+		else: # zoom-move
+			prevsx,prevsy = self.zoommove
+			sx,sy = self.scale.getsxy(px,py)
+			if sx != prevsx or sy != prevsy:
+				self.scale.zoommove(sx-prevsx,sy-prevsy)
+				self.redraw_initial_canvas()
+			self.zoommove = sx,sy
 
 	# Move figure
 	def b2down(self, px, py):

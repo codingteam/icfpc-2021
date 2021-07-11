@@ -99,12 +99,12 @@ object DumbSolver {
     }
   }
 
-  def wobbleOne(problem: Problem, solution: Vector[Point], i: Int) : Seq[Vector[Point]] = {
+  def wobbleOne(problem: Problem, solution: Vector[Point], i: Int, delta: Int = 2) : Seq[Vector[Point]] = {
     val validator = new SolutionValidator(problem)
     val newPos = new ListBuffer[Vector[Point]]()
     val p = solution(i)
-    for (dx <- -2 to 2) {
-      for (dy <- -2 to 2) {
+    for (dx <- -delta to delta) {
+      for (dy <- -delta to delta) {
         if (dx != 0 || dy != 0) {
           val v = Point(p.x + dx, p.y + dy)
           val verts = solution.updated(i, v)
