@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path}
 
 class SatSolver(problem: Problem) {
   def solve(): Option[Solution] = {
-    val logic = new BooleanLogic()
+    val logic = BooleanLogic()
     println(s"${logic.toCNF()}")
     None
   }
