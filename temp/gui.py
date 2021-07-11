@@ -140,18 +140,9 @@ class Scale:
 		miny = min(minhy, minpy)
 		maxx = max(maxhx, maxpx)
 		maxy = max(maxhy, maxpy)
-		self.scale_kx = TARGETWIDTH * 0.95 / (maxx-minx)
-		self.scale_ky = TARGETHEIGHT * 0.95 / (maxy-miny)
-		# (maxx+minx)/2 === TARGETWIDTH/2
-		# (maxx+minx)/2 * scale_kx + scale_bx == TARGETWIDTH/2
-		# scale_bx = TARGETWIDTH/2 - (maxx+minx)/2 * scale_kx
-		# scale_bx = TARGETWIDTH/2 - (maxx+minx)/2 * TARGETWIDTH * 0.95 / (maxx-minx)
-		# scale_bx = TARGETWIDTH/2 * ( 1 - (maxx+minx) * 0.95 / (maxx-minx) )
-		# scale_bx = TARGETWIDTH/2 * ( (maxx-minx) - (maxx+minx)*0.95 ) / (maxx-minx)
-		# scale_bx = TARGETWIDTH/2 * ( maxx-minx - maxx*0.95-minx*0.95 ) / (maxx-minx)
-		# scale_bx = TARGETWIDTH/2 * (maxx*0.05 - minx*1.05) / (maxx-minx)
-		self.scale_bx = TARGETWIDTH/2 * ( 1 - (maxx+minx) * 0.95 / (maxx-minx) )
-		self.scale_by = TARGETHEIGHT/2 * ( 1 - (maxy+miny) * 0.95 / (maxy-miny) )
+		self.scale_kx = self.scale_ky = min( TARGETWIDTH*0.95/(maxx-minx), TARGETHEIGHT*0.95/(maxy-miny) )
+		self.scale_bx = TARGETWIDTH/2 - (maxx+minx)/2 * self.scale_kx
+		self.scale_by = TARGETHEIGHT/2 - (maxy+miny)/2 * self.scale_ky
 		self.midpx, self.midpy = self.getpxy(TARGETWIDTH/2, TARGETHEIGHT/2)
 	def getsxy(self, px, py):
 		return px*self.scale_kx+self.scale_bx, py*self.scale_ky+self.scale_by
@@ -239,6 +230,9 @@ class Window:
 		self.stickyholeVar = Tk.IntVar(value=1)
 		stickyholeCheck = Tk.Checkbutton(rightFrame, text="Sticky hole vertex", variable=self.stickyholeVar, anchor=Tk.W)
 		self.guihint(stickyholeCheck, "Don't unstretch figure vertex if it's in the hole vertex")
+		self.localunstretchVar = Tk.IntVar(value=0)
+		localunstretchCheck = Tk.Checkbutton(rightFrame, text="Local auto-unstretch", variable=self.localunstretchVar, anchor=Tk.W)
+		self.guihint(localunstretchCheck, "When Auto-Unstretching, unstretch only edges of vertex moved by mouse (VERY UNSTABLE)")
 		self.intunstretchVar = Tk.IntVar(value=0)
 		intunstretchCheck = Tk.Checkbutton(rightFrame, text="Integer unstretch", variable=self.intunstretchVar, anchor=Tk.W)
 		self.guihint(intunstretchCheck, "When auto-unstretching, round coords to integer (VERY UNSTABLE)")
@@ -295,6 +289,7 @@ class Window:
 		debugLabel.pack(side=Tk.TOP, fill=Tk.X)
 		unstretchallCheck.pack(side=Tk.TOP, fill=Tk.X)
 		stickyholeCheck.pack(side=Tk.TOP, fill=Tk.X)
+		localunstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		intunstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		intdragCheck.pack(side=Tk.TOP, fill=Tk.X)
 		if self.bonuses:
@@ -323,12 +318,15 @@ class Window:
 		self.canvas.bind("<Motion>", lambda ev: self.status.configure( text="(%d,%d)" % self.scale.getpxy(ev.x,ev.y) ))
 		self.canvas.bind("<Button-1>", lambda ev: self.b1down(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<B1-Motion>", lambda ev: self.b1move(*self.scale.getpxy(ev.x,ev.y)))
+		self.canvas.bind("<ButtonRelease-1>", lambda ev: self.b1up(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<Button-2>", lambda ev: self.b2down(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<B2-Motion>", lambda ev: self.b2move(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<Button-3>", lambda ev: self.b3down(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<B3-Motion>", lambda ev: self.b3move(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<Button-4>", lambda ev: [self.scale.zoomin(ev.x,ev.y),self.redraw_initial_canvas()])
 		self.canvas.bind("<Button-5>", lambda ev: [self.scale.zoomout(ev.x,ev.y),self.redraw_initial_canvas()])
+
+		self.dragidx = None
 
 		## Draw lines, calculate stats
 		self.redraw_initial_canvas()
@@ -481,6 +479,8 @@ class Window:
 				self.scale.zoommove(sx-prevsx,sy-prevsy)
 				self.redraw_initial_canvas()
 			self.zoommove = sx,sy
+	def b1up(self, px, py):
+		self.dragidx = None
 
 	# Move figure
 	def b2down(self, px, py):
@@ -540,6 +540,7 @@ class Window:
 		if self.bonusGIDVar.get() != "": # have GLOBALIST - unstretch just the most stretched edge
 			totaleps, maxeps, maxp1,maxp2, maxsrcd,maxdstd = 0, None, None,None, None,None
 			for p1,p2 in self.problem['figure']['edges']:
+				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				if dstd == 0: dstd = 0.1 # avoid zero division
 				e = 1000000*abs(dstd*1.0/srcd - 1)
@@ -550,6 +551,7 @@ class Window:
 				self.unstretch_edge_1step( maxp1,maxp2, maxsrcd,maxdstd, dontmove_list, round_to_int )
 		else: # unstrech all the edges
 			for p1,p2 in self.problem['figure']['edges']:
+				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				if dstd == 0: dstd = 0.1 # avoid zero division
 				e = dstd*1.0/srcd - 1
