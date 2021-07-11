@@ -30,7 +30,7 @@ UNSTRETCH_SPEED = 0.1 # must be <1
 STUFF_SPEED = 0.05 # must be < UNSTRETCH_SPEED ?
 FILL_SPEED = 0.05 # must be < STUFF_SPEED ?
 AUTO_PERIOD = 10 # milliseconds
-BONUSCOLOR = {'GLOBALIST':'#880','WALLHACK':'#840','BREAK_A_LEG':'#008'}
+BONUSCOLOR = {'GLOBALIST':'#880','WALLHACK':'#840','BREAK_A_LEG':'#008','SUPERFLEX':'#088'}
 
 def sqdist(p1, p2):
 	x1, y1 = p1
@@ -253,6 +253,9 @@ class Window:
 		bonusWLabel = Tk.Message(rightFrame, text="Have WALLHACK from PID\n(empty == no bonus):", width=RIGHTWIDTH, anchor=Tk.W)
 		self.bonusWIDVar = Tk.StringVar(value=initial_bonuses.get('WALLHACK',''))
 		bonusWIDText = Tk.Entry(rightFrame, textvariable = self.bonusWIDVar)
+		bonusSLabel = Tk.Message(rightFrame, text="Have SUPERFLEX from PID\n(empty == no bonus):", width=RIGHTWIDTH, anchor=Tk.W)
+		self.bonusSIDVar = Tk.StringVar(value=initial_bonuses.get('SUPERFLEX',''))
+		bonusSIDText = Tk.Entry(rightFrame, textvariable = self.bonusSIDVar)
 
 		mirrorButton = Tk.Button(rightFrame, text="Mirror", command=self.mirror_clicked)
 		self.guihint(mirrorButton, "Mirror the figure horizontally")
@@ -300,6 +303,8 @@ class Window:
 			bonusGIDText.pack(side=Tk.TOP, fill=Tk.X)
 			bonusWLabel.pack(side=Tk.TOP, fill=Tk.X)
 			bonusWIDText.pack(side=Tk.TOP, fill=Tk.X)
+			bonusSLabel.pack(side=Tk.TOP, fill=Tk.X)
+			bonusSIDText.pack(side=Tk.TOP, fill=Tk.X)
 		mirrorButton.pack(side=Tk.TOP, fill=Tk.X)
 		spreadButton.pack(side=Tk.TOP, fill=Tk.X)
 		search1Button.pack(side=Tk.TOP, fill=Tk.X)
@@ -310,7 +315,7 @@ class Window:
 		helpLabel.pack(side=Tk.BOTTOM, fill=Tk.X)
 
 		# Help: about bonuses (adding to bottom, thus reverse order)
-		for bname in BONUSCOLOR:
+		for bname in reversed(BONUSCOLOR.keys()):
 			Tk.Message(rightFrame, text=" - "+bname, width=RIGHTWIDTH, anchor=Tk.W, fg=BONUSCOLOR[bname])\
 			    .pack(side=Tk.BOTTOM, fill=Tk.X)
 		Tk.Message(rightFrame, text="Known bonuses:", width=RIGHTWIDTH, anchor=Tk.W).pack(side=Tk.BOTTOM, fill=Tk.X)
@@ -375,7 +380,7 @@ class Window:
 			for p1,p2 in self.problem['figure']['edges']:
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				total_epsilon += 1000000*abs(dstd*1.0/srcd - 1)
-			global_epsilon_valid = total_epsilon <= self.problem['epsilon']+.0000001 * len(self.problem['figure']['edges'])
+			global_epsilon_valid = total_epsilon <= (self.problem['epsilon']+.0000001) * len(self.problem['figure']['edges'])
 
 		global_whitelist_vertex = None
 		if self.bonusWIDVar.get() != "": # We have WALLHACK, check if there's 1 sticky vertex
@@ -418,13 +423,18 @@ class Window:
 		# Count the dislikes
 		dislikes = sum( min( sqdist(hp,p) for p in self.dstp ) for hp in self.problem['hole'] )
 
-		solution_is_valid = \
-		   ( stats_overstretched == 0 if global_epsilon_valid is None else global_epsilon_valid ) and \
-		   ( stats_outofhole == 0 )
+		solution_is_valid = stats_outofhole==0
+		if global_epsilon_valid is None:
+			if self.bonusSIDVar.get() == "":
+				solution_is_valid = solution_is_valid and (stats_overstretched == 0)
+			else:
+				solution_is_valid = solution_is_valid and (stats_overstretched <= 1)
+		else:
+			solution_is_valid = solution_is_valid and global_epsilon_valid
 
 		# Show stats
 		self.stretchedLabel['text'] = "Overstretched edges: %d" % stats_overstretched
-		self.stretchedLabel['foreground'] = "green" if stats_overstretched == 0 else "red"
+		self.stretchedLabel['foreground'] = "green" if stats_overstretched <= (self.bonusSIDVar.get()!="") else "red"
 		self.holedLabel['text'] = "Out of hole edges: %d" % stats_outofhole
 		self.holedLabel['foreground'] = "green" if stats_outofhole == 0 else "red"
 		self.dislikesLabel['text'] = "Dislikes: %d" % dislikes
@@ -448,7 +458,14 @@ class Window:
 		self.last_dislikes_str = "" if solution_is_valid else "-"
 		self.last_dislikes_str += "%d" % dislikes
 		if self.solution_basefname:
+			bonusstr = ""
+			if self.bonusGIDVar.get() != "": bonusstr += "G" + self.bonusGIDVar.get()
+			if self.bonusWIDVar.get() != "": bonusstr += "W" + self.bonusWIDVar.get()
+			if self.bonusSIDVar.get() != "": bonusstr += "S" + self.bonusSIDVar.get()
+
 			suffix = self.last_dislikes_str
+			if bonusstr:
+				suffix = bonusstr + "=" + suffix
 			if collected:
 				suffix += "-" + "-".join( "%s%s" % (name[0],pid) for name,pid in collected )
 			self.outfnameVar.set(self.solution_basefname + "." + suffix)
@@ -689,6 +706,8 @@ class Window:
 			used_bonuses.append( {'bonus':"GLOBALIST",'problem':self.bonusGIDVar.get()} )
 		if self.bonusWIDVar.get() != "":
 			used_bonuses.append( {'bonus':"WALLHACK",'problem':self.bonusWIDVar.get()} )
+		if self.bonusSIDVar.get() != "":
+			used_bonuses.append( {'bonus':"SUPERFLEX",'problem':self.bonusSIDVar.get()} )
 		if used_bonuses:
 			data['bonuses'] = used_bonuses
 		f = open( self.outfnameVar.get(), "w" )
