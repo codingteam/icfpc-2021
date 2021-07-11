@@ -38,6 +38,12 @@ case class Rotate(angle : Double) extends Action {
   }
 }
 
+case class Move(vector: Point) extends Action {
+  override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
+    solution.map(p => p + vector)
+  }
+}
+
 class SolutionOptimizer(problem: Problem) {
   val evaluator = new SolutionEvaluator(problem)
   val validator = new SolutionValidator(problem)
@@ -61,7 +67,13 @@ class SolutionOptimizer(problem: Problem) {
       Rotate(angle)
     })
 
-    wobbles ++ mirrors ++ rotations
+    val sz = problem.holeRect.size
+    val (maxDx, maxDy) = (sz.x / 2, sz.y / 2)
+    val moves = for {dx <- -maxDx to maxDy
+                     dy <- -maxDy to maxDy}
+      yield Move(Point(dx, dy))
+
+    wobbles ++ mirrors ++ rotations ++ moves
   }
 
   def optimizeOnce(solution: Vector[Point]): Vector[Point] = {
