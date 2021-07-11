@@ -424,7 +424,7 @@ package object icfpc2021 {
 
       var last_hole_point = hole.last
       for (cur_hole_point <- hole) {
-        val Point(bx1, by1) = hole.last
+        val Point(bx1, by1) = last_hole_point
         val Point(bx2, by2) = cur_hole_point
 
 		if (( (ax2-ax1)*(by1-ay1)-(bx1-ax1)*(ay2-ay1) ) * ( (ax2-ax1)*(by2-ay1)-(bx2-ax1)*(ay2-ay1) ) < 0
