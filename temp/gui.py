@@ -241,6 +241,9 @@ class Window:
 		bonusGLabel = Tk.Message(rightFrame, text="Have GLOBALIST from PID\n(empty == no bonus):", width=RIGHTWIDTH, anchor=Tk.W)
 		self.bonusGIDVar = Tk.StringVar(value=initial_bonuses.get('GLOBALIST',''))
 		bonusGIDText = Tk.Entry(rightFrame, textvariable = self.bonusGIDVar)
+		bonusWLabel = Tk.Message(rightFrame, text="Have WALLHACK from PID\n(empty == no bonus):", width=RIGHTWIDTH, anchor=Tk.W)
+		self.bonusWIDVar = Tk.StringVar(value=initial_bonuses.get('WALLHACK',''))
+		bonusWIDText = Tk.Entry(rightFrame, textvariable = self.bonusWIDVar)
 
 		mirrorButton = Tk.Button(rightFrame, text="Mirror", command=self.mirror_clicked)
 		self.guihint(mirrorButton, "Mirror the figure horizontally")
@@ -284,6 +287,8 @@ class Window:
 			bonusstickyCheck.pack(side=Tk.TOP, fill=Tk.X)
 			bonusGLabel.pack(side=Tk.TOP, fill=Tk.X)
 			bonusGIDText.pack(side=Tk.TOP, fill=Tk.X)
+			bonusWLabel.pack(side=Tk.TOP, fill=Tk.X)
+			bonusWIDText.pack(side=Tk.TOP, fill=Tk.X)
 		mirrorButton.pack(side=Tk.TOP, fill=Tk.X)
 		spreadButton.pack(side=Tk.TOP, fill=Tk.X)
 		search1Button.pack(side=Tk.TOP, fill=Tk.X)
@@ -346,13 +351,24 @@ class Window:
 		# Check pose lines, update stats:
 		stats_overstretched, stats_outofhole = 0, 0
 
-		epsilon_valid_global = None
+		global_epsilon_valid = None
 		if self.bonusGIDVar.get() != "": # We have a GLOBALIST bonus, use different math:
 			total_epsilon = 0
 			for p1,p2 in self.problem['figure']['edges']:
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				total_epsilon += 1000000*abs(dstd*1.0/srcd - 1)
-			epsilon_valid_global = total_epsilon <= self.problem['epsilon'] * len(self.problem['figure']['edges'])
+			global_epsilon_valid = total_epsilon <= self.problem['epsilon'] * len(self.problem['figure']['edges'])
+
+		global_whitelist_vertex = None
+		if self.bonusWIDVar.get() != "": # We have WALLHACK, check if there's 1 sticky vertex
+			count_out_of_hole = 0
+			for i in xrange( len(self.dstp) ):
+				px,py = self.dstp[i]
+				if not point_in_hole( self.problem['hole'], (px,py) ):
+					count_out_of_hole += 1
+					global_whitelist_vertex = i
+			if count_out_of_hole > 1: # only one whitelist is allowed
+				global_whitelist_vertex = None
 
 		for i in xrange( len(self.problem['figure']['edges']) ):
 			lineid = self.lineids[i]
@@ -364,12 +380,15 @@ class Window:
 			if not epsilon_valid: stats_overstretched += 1
 
 			# check hole
-			hole_valid = line_in_hole(self.problem['hole'], self.dstp[p1],self.dstp[p2])
+			if p1 == global_whitelist_vertex or p2 == global_whitelist_vertex:
+				hole_valid = True
+			else:
+				hole_valid = line_in_hole(self.problem['hole'], self.dstp[p1],self.dstp[p2])
 			if not hole_valid: stats_outofhole += 1
 
 			# if we have GLOBALIST bonus - use a single global color:
-			if epsilon_valid_global is not None:
-				epsilon_valid = epsilon_valid_global
+			if global_epsilon_valid is not None:
+				epsilon_valid = global_epsilon_valid
 
 			# update the line
 			sx1,sy1 = self.scale.getsxy( *self.dstp[p1] )
@@ -382,7 +401,7 @@ class Window:
 		dislikes = sum( min( sqdist(hp,p) for p in self.dstp ) for hp in self.problem['hole'] )
 
 		solution_is_valid = \
-		   ( stats_overstretched == 0 if epsilon_valid_global is None else epsilon_valid_global ) and \
+		   ( stats_overstretched == 0 if global_epsilon_valid is None else global_epsilon_valid ) and \
 		   ( stats_outofhole == 0 )
 
 		# Show stats
@@ -634,8 +653,13 @@ class Window:
 	def save_clicked(self):
 		self.saveddislikesLabel['text'] = "Saved dislikes: %s" % self.last_dislikes_str
 		data = {"vertices":self.dstp}
+		used_bonuses = []
 		if self.bonusGIDVar.get() != "":
-			data['bonuses'] = [{'bonus':"GLOBALIST",'problem':self.bonusGIDVar.get()}]
+			used_bonuses.append( {'bonus':"GLOBALIST",'problem':self.bonusGIDVar.get()} )
+		if self.bonusWIDVar.get() != "":
+			used_bonuses.append( {'bonus':"WALLHACK",'problem':self.bonusWIDVar.get()} )
+		if used_bonuses:
+			data['bonuses'] = used_bonuses
 		f = open( self.outfnameVar.get(), "w" )
 		json.dump( data, f )
 		f.close()
