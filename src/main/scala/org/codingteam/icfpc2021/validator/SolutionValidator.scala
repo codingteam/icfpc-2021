@@ -61,8 +61,7 @@ class SolutionValidator(problem: Problem) {
   }
 
   def isPointInHole(p: Point): Boolean = {
-    val hole = new Polygon(problem.hole.map(_.x.intValue).toArray, problem.hole.map(_.y.intValue).toArray, problem.hole.size)
-    hole.contains(p.x.toDouble, p.y.toDouble)
+    problem.isPointInHoleExact(p)
   }
 
   def isPointInHole(p: PointD): Boolean = {
@@ -73,7 +72,12 @@ class SolutionValidator(problem: Problem) {
   def invalidnessMeasure(solution: Solution) : BigInt = {
     val edgeDeltas = problem.figure.edges.map(e => calcEdgeLengthDelta(solution, e)._1.abs).sum
     val pointsOutside = solution.vertices.count(p => !isPointInHole(p))
-    10 * pointsOutside + edgeDeltas
+    val badEdges = problem.figure.edges.count(e => {
+      val p1 = solution.vertices(e.vertex1)
+      val p2 = solution.vertices(e.vertex2)
+      problem.segmentGoesOutsideTheHole((p1, p2))
+    })
+    5 * pointsOutside + 5*badEdges + edgeDeltas
   }
 
   def validate(solution: Solution): Boolean = {
