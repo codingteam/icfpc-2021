@@ -66,7 +66,7 @@ class GeneticSolver(problem: Problem) {
   private def calculateScore(creature: Creature): Score = {
     val creatureVertices: Vector[Point] = creature.map(problem.hole(_))
 
-    (for ((edge, expected_length) <- edges_sq_lengths) yield {
+    val by_distance = (for ((edge, expected_length) <- edges_sq_lengths) yield {
       val p1 = creatureVertices(edge.vertex1)
       val p2 = creatureVertices(edge.vertex2)
 
@@ -83,6 +83,13 @@ class GeneticSolver(problem: Problem) {
         }
       }
     }).sum
+
+    if (by_distance == 0) {
+      BigInt(0)
+    } else {
+      val by_points = creature.toSet.size
+      BigInt(1) + by_distance / BigInt(by_points).pow(2)
+    }
   }
 
   private case class ScoredCreature(creature: Creature) {
