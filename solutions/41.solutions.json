@@ -1,4 +1,12 @@
 [ {
+  "id" : "3a9a0017-9078-475f-85e2-6eebb1931c0a",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
   "id" : "374fc4ce-c8f7-464f-a066-bc70cb779a6e",
   "solution" : {
     "state" : "VALID",

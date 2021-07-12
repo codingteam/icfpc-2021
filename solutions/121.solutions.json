@@ -1,0 +1,12 @@
+[ {
+  "id" : "1986721b-3037-41de-8b43-da00a0f1cfbd",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 50813,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "GLOBALIST",
+      "problem" : 21
+    } ]
+  }
+} ]

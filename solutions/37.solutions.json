@@ -1,0 +1,9 @@
+[ {
+  "id" : "b4ef3e26-0448-42be-9c99-262cf27831a8",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "The edge at (6,27)-(0,0) is not inside the hole.",
+    "awarded_bonuses" : null
+  }
+} ]

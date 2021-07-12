@@ -1,0 +1,17 @@
+[ {
+  "id" : "5091e9dd-a6a5-4a4f-834b-a780977c355b",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "c668acc0-ce21-4a16-b840-2628d7f41a27",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "The point at (49,57) is not inside the hole",
+    "awarded_bonuses" : null
+  }
+} ]

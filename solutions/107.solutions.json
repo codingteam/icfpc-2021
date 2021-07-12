@@ -1,0 +1,9 @@
+[ {
+  "id" : "910acce3-2ca7-438b-80e2-e6b3207c5c45",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "bad JSON",
+    "awarded_bonuses" : null
+  }
+} ]

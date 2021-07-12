@@ -1,4 +1,15 @@
 [ {
+  "id" : "be09d9bf-df90-4027-8a06-22e4cf4657dc",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "GLOBALIST",
+      "problem" : 40
+    } ]
+  }
+}, {
   "id" : "3d07b028-d177-4216-b377-5c5c0c2db017",
   "solution" : {
     "state" : "VALID",

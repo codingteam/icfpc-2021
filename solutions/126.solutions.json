@@ -1,0 +1,18 @@
+[ {
+  "id" : "71c9e286-cb41-4197-94b7-646d336bc0ed",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 31667,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "SUPERFLEX",
+      "problem" : 129
+    }, {
+      "bonus" : "WALLHACK",
+      "problem" : 122
+    }, {
+      "bonus" : "BREAK_A_LEG",
+      "problem" : 61
+    } ]
+  }
+} ]

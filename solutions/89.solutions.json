@@ -1,0 +1,34 @@
+[ {
+  "id" : "44ca7544-77f2-4515-a351-e533767af6bb",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 118360,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "BREAK_A_LEG",
+      "problem" : 103
+    }, {
+      "bonus" : "GLOBALIST",
+      "problem" : 18
+    }, {
+      "bonus" : "SUPERFLEX",
+      "problem" : 95
+    } ]
+  }
+}, {
+  "id" : "74586052-44f1-4a9c-bbcc-21fa6a7c23d1",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 129702,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "c9cf07c8-a84a-4505-a3c5-cd13be362b74",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 133776,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+} ]

@@ -1,0 +1,18 @@
+[ {
+  "id" : "a43b3535-587e-43a7-9215-037ce3d42fc0",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 97913,
+    "error" : null,
+    "awarded_bonuses" : [ {
+      "bonus" : "GLOBALIST",
+      "problem" : 115
+    }, {
+      "bonus" : "BREAK_A_LEG",
+      "problem" : 114
+    }, {
+      "bonus" : "WALLHACK",
+      "problem" : 9
+    } ]
+  }
+} ]

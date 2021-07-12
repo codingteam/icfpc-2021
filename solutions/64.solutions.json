@@ -1,0 +1,25 @@
+[ {
+  "id" : "5d6ac213-8684-4e86-9272-debced0439c8",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 0,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "87779b61-0cbf-4ff6-a235-6b17371d022c",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 284884,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "55330de7-8995-4304-9cfc-297ab1219287",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "The point at (45,241) is not inside the hole",
+    "awarded_bonuses" : null
+  }
+} ]

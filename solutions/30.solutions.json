@@ -1,4 +1,28 @@
 [ {
+  "id" : "02462944-d9c9-43b5-ac3e-bb18454e072f",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 2526,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "ac79c566-908b-491e-b988-15831b6329c5",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 2700,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "984df54f-731d-426e-b2b5-b993dedc382f",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "The point at (44,25) is not inside the hole",
+    "awarded_bonuses" : null
+  }
+}, {
   "id" : "fb5a2f2b-8682-4ecb-a213-9b6e2c22d559",
   "solution" : {
     "state" : "INVALID",
