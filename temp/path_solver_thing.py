@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# See also: PathSolver.scala
+
 import json
 import sys
 import re

@@ -7,6 +7,20 @@ import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+/**
+ * A tool to find partial borders for "clew" problems like 125.  Intended to be
+ * used in the scala repl (`sbt console`).
+ *
+ *
+ * Example usage:
+ *
+ *   import org.codingteam.icfpc2021._, org.codingteam.icfpc2021.solver._, scala.collection.immutable.BitSet
+ *   // task 125, starting hole point is 91
+ *   new PathSolver(Repl.load(125)).solve(BitSet(), 0, 3, BitSet(91))
+ *
+ * The output should be rewiewed manually and copied into `path_solver_thing.py`
+ * to produce JSON file which could be loaded in a GUI tool.
+ */
 class PathSolver(problem: Problem) {
   private val holeDistances =
     problem.hole.sliding(2).map(pair => pair(0).distanceSq(pair(1))).toVector :+
