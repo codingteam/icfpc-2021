@@ -8,15 +8,12 @@ import org.codingteam.icfpc2021.solver.{DumbSolver, LocationOptimizer, SolutionO
 import org.codingteam.icfpc2021.som.{SOMSolver, SOMSolverOptionsPanel}
 import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
 
-import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener, MouseWheelEvent, MouseWheelListener}
-import java.awt.{BorderLayout, Color, Dimension, Graphics}
-import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseListener, MouseMotionListener}
-import java.awt.{BorderLayout, Color, Dimension, Graphics, GridLayout}
-import java.nio.file.{Files, Path, Paths}
+import java.awt.event._
+import java.awt.{Point => _, _}
 import java.io.File
+import java.nio.file.{Files, Path}
 import javax.swing._
-import scala.collection.immutable
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.language.implicitConversions
 import scala.swing.Graphics2D
 import scala.util.Random
@@ -368,6 +365,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Next file", () => moveToNextProblem(1)))
 
     tb.add(makeAction("Load solution", () => loadSolution()))
+    tb.add(makeAction("Cur. solution", () => loadCurrentSolution()))
 
     tb.add(makeAction("Print JSON", () => printSolution()))
 
@@ -603,11 +601,27 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     val option = dialog.showOpenDialog(this)
     if (option == JFileChooser.APPROVE_OPTION) {
       val path = cwd + File.separator + dialog.getSelectedFile.getName
-      val loadedSolution = Json.parseSolution(Files.readString(Paths.get(path)))
-      solution = loadedSolution.vertices
-      repaint()
-      updateStatus()
+      loadSolution(Path.of(path))
     }
+  }
+
+  private def loadCurrentSolution(): Unit = {
+    val solutionsDir = Path.of("./solutions")
+    val problemId = problemFile.getFileName.toString.replace(".json", "")
+    val paths = Files.newDirectoryStream(solutionsDir, s"$problemId.json*")
+    try {
+      val solutionFilePath = paths.iterator().next()
+      loadSolution(solutionFilePath)
+    } finally {
+      paths.close()
+    }
+  }
+
+  private def loadSolution(solutionFilePath: Path): Unit = {
+    val loadedSolution = Json.parseSolution(Files.readString(solutionFilePath))
+    solution = loadedSolution.vertices
+    repaint()
+    updateStatus()
   }
 
   private def printSolution(): Unit = {

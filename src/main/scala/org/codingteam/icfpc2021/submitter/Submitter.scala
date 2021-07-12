@@ -107,9 +107,9 @@ object Submitter {
       files.forEach(file => {
         try {
           val fileName = file.getFileName
-          if (fileName.toString.contains(".json") && !fileName.toString.contains("solutions")) {
+          if (fileName.toString.endsWith(".json") && !fileName.toString.contains("solutions")) {
             println(s"Processing file $fileName")
-            val problemId = fileName.toString.replaceFirst("\\.json.*$", "")
+            val problemId = fileName.toString.replace(".json", "")
             println(s"  Processing problem $problemId.")
 
             val problem = Json.parseProblem(Files.readString(problemsDir.resolve(s"$problemId.json")))
