@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 import scala.util.Random
 
-case class Options(useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 10)
+case class Options(nIterations: Int, useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 10)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -164,7 +164,11 @@ class SolutionOptimizer(problem: Problem) {
     sols(bestIdx).vertices
   }
 
-  def optimizeOnce(solution: Vector[Point], options: Options): Vector[Point] = {
+  private def optimizerGoal(solution: Solution): BigInt = {
+    evaluator.evaluate(solution) - validator.invalidnessMeasure(solution)
+  }
+
+  private def optimizeOnce(solution: Vector[Point], options: Options): Option[(Vector[Point], BigInt)] = {
     val actions = possibleActions(solution, options)
     val random = new Random()
     //println(s"A: $actions")
@@ -181,9 +185,39 @@ class SolutionOptimizer(problem: Problem) {
         }
       }
     )
-    val results = validSols.map(sol => evaluator.evaluate(sol) - validator.invalidnessMeasure(sol))
-    //println(s"R: $results")
-    val bestIdx = results.zipWithIndex.minBy(_._1)._2
-    validSols(bestIdx).vertices
+    val results = validSols.map(optimizerGoal)
+    if (results.length >= 1) {
+      val (bestResult, bestIdx) = results.zipWithIndex.minBy(_._1)
+      Some((validSols(bestIdx).vertices, bestResult))
+    } else {
+      println("No actions are available which would make solution valid")
+      None
+    }
+  }
+
+  def optimizeEagerly(solution: Vector[Point], options: Options): Vector[Point] = {
+    var currentSolution = solution
+    var prevResult = optimizerGoal(Solution(solution, null))
+    var retryNumber = 0
+    val maxRetries = 3
+    var stop = false
+    var i = 0
+
+    while (! stop) {
+      optimizeOnce(solution, options) match {
+        case None => { stop = true }
+        case Some((newSol, newRes)) => {
+          currentSolution = newSol
+          if (newRes <= prevResult) {
+            retryNumber += 1
+          }
+          i += 1
+          prevResult = newRes
+          stop = (i > options.nIterations) || (retryNumber > maxRetries)
+          }
+      }
+    }
+
+    currentSolution
   }
 }

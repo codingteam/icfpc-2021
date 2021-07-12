@@ -484,7 +484,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
   private def runOptimizer(): Unit = {
     val optimizer = new SolutionOptimizer(problem)
     val options = optimizerOptionsPanel.options
-    solution = optimizer.optimizeOnce(solution, options)
+    solution = optimizer.optimizeEagerly(solution, options)
     repaint()
     updateStatus()
   }
