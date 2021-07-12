@@ -1,6 +1,8 @@
 Codingteam ICFP Contest 2021 Submission
 =======================================
 
+Latest version (probably with links to participants' reports) will be available at https://github.com/codingteam/icfpc-2021
+
 Solution Overview
 -----------------
 
