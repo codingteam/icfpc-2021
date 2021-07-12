@@ -2,7 +2,7 @@ package org.codingteam.icfpc2021.sat_solver
 
 import org.codingteam.icfpc2021._
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, StandardOpenOption}
 import scala.collection.mutable.{Buffer, HashMap}
 import scala.math.abs
 
@@ -66,7 +66,7 @@ class SatSolver(problem: Problem) {
     }).toVector
   }
 
-  def solve(): Option[Solution] = {
+  private def prepareDIMACS(): String = {
     val logic = BooleanLogic()
 
     // Each of the figure's vertices should correspond to exactly one of the
@@ -121,8 +121,33 @@ class SatSolver(problem: Problem) {
       }
     }
 
-    println(s"${logic.toCNF()}")
-    println(s"${DIMACS.from(logic)}")
+    DIMACS.from(logic)
+  }
+
+  private def runMinisat(dimacs: String): Option[String] = {
+    import scala.sys.process._
+
+    val inputFile: Path = Files.createTempFile("icfpc2021-satsolver-in-", ".sat")
+    val outputFile: Path = Files.createTempFile("icfpc2021-satsolver-out-", ".sat")
+
+    try {
+      Files.writeString(inputFile, dimacs, StandardOpenOption.CREATE)
+      val exit_code = Seq("minisat", inputFile.toString, outputFile.toString).!
+      if (exit_code == 10) {
+        // the problem was satisfied
+        return Some(Files.readString(outputFile))
+      }
+    } finally {
+      Files.delete(inputFile)
+      Files.delete(outputFile)
+    }
+
+    None
+  }
+
+  def solve(): Option[Solution] = {
+    val dimacs = prepareDIMACS()
+    val sat_solution = runMinisat(dimacs)
     None
   }
 }
