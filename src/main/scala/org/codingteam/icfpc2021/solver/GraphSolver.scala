@@ -21,6 +21,12 @@ class GraphSolver(problem: Problem) {
     }
   }
 
+  lazy val edgesGoodForFolds : Seq[Edge] = {
+    problem.figure.edges.filter(e =>
+      tryBreakGraphByRemovingEdge(e).isDefined
+    )
+  }
+
   def findComponents(excludeVerts: Set[Int]): Seq[Vector[Int]] = {
     val nVerts = problem.figure.vertices.length
     val nExcluded = excludeVerts.size

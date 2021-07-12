@@ -439,17 +439,22 @@ package object icfpc2021 {
       val Point(ax1, ay1) = p1
       val Point(ax2, ay2) = p2
 
+      val segmentRect = Rect.fromTwoPoints(ax1, ay1, ax2, ay2)
+
       var last_hole_point = hole.last
       for (cur_hole_point <- hole) {
         val Point(bx1, by1) = last_hole_point
         val Point(bx2, by2) = cur_hole_point
 
-		if (( (ax2-ax1)*(by1-ay1)-(bx1-ax1)*(ay2-ay1) ) * ( (ax2-ax1)*(by2-ay1)-(bx2-ax1)*(ay2-ay1) ) < 0
+        val holeRect = Rect.fromTwoPoints(bx1, by1, bx2, by2)
+
+        if (segmentRect.intersects(holeRect)) {
+          if (((ax2 - ax1) * (by1 - ay1) - (bx1 - ax1) * (ay2 - ay1)) * ((ax2 - ax1) * (by2 - ay1) - (bx2 - ax1) * (ay2 - ay1)) < 0
             &&
-		   ( (bx2-bx1)*(ay1-by1)-(ax1-bx1)*(by2-by1) ) * ( (bx2-bx1)*(ay2-by1)-(ax2-bx1)*(by2-by1) ) < 0)
-           {
-			return true
-           }
+            ((bx2 - bx1) * (ay1 - by1) - (ax1 - bx1) * (by2 - by1)) * ((bx2 - bx1) * (ay2 - by1) - (ax2 - bx1) * (by2 - by1)) < 0) {
+            return true
+          }
+        }
 		last_hole_point = cur_hole_point
       }
 
@@ -472,5 +477,30 @@ package object icfpc2021 {
 
     def contains(p: Point): Boolean =
       p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y
+
+    def intersects(box: Rect): Boolean = {
+      val x = (box.min.x > max.x) || (box.max.x < min.x)
+      val y = (box.min.y > max.y) || (box.max.y < min.y)
+      val result = ! (x || y)
+      result
+    }
+  }
+
+  object Rect {
+    def fromTwoPoints(ax1: BigInt, ay1: BigInt, ax2: BigInt, ay2: BigInt): Rect = {
+      val (minSegmentX, maxSegmentX) = if (ax1 < ax2) {
+        (ax1, ax2)
+      } else {
+        (ax2, ax1)
+      }
+
+      val (minSegmentY, maxSegmentY) = if (ay1 < ay2) {
+        (ay1, ay2)
+      } else {
+        (ay2, ay1)
+      }
+
+      Rect(Point(minSegmentX, minSegmentY), Point(maxSegmentX, maxSegmentY))
+    }
   }
 }

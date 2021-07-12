@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 import scala.util.Random
 
-case class Options(nIterations: Int, useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, wobbleDelta: Int = 5, translationDelta: Int = 10)
+case class Options(nIterations: Int, useWobbles: Boolean, correctByWobbles: Boolean, useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, wobbleDelta: Int = 5, translationDelta: Int = 10)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -80,6 +80,7 @@ case class TransposeXY() extends Action {
 class SolutionOptimizer(problem: Problem) {
   val evaluator = new SolutionEvaluator(problem)
   val validator = new SolutionValidator(problem)
+  val graph = new GraphSolver(problem)
 
   def singleRotations(solution: Vector[Point], vertexIndex: Int): Seq[Action] = {
     val p = solution(vertexIndex).toPointD()
@@ -104,7 +105,12 @@ class SolutionOptimizer(problem: Problem) {
     val n = solution.length
     val figure = Figure(problem.figure.edges, solution)
     val idxs = 0 to (n-1)
-    val wobbles = idxs.map(i => Wobble(i, delta=options.wobbleDelta)) : Seq[Action]
+    val wobbles =
+      if (options.useWobbles) {
+        idxs.map(i => Wobble(i, delta=options.wobbleDelta)) : Seq[Action]
+      } else {
+        List()
+      }
     val mirrors = idxs.flatMap(i => {
         val neighbours = figure.vertexNeighbours(i)
         if (neighbours.length == 2) {
@@ -140,14 +146,9 @@ class SolutionOptimizer(problem: Problem) {
 
     val folds =
       if (options.useFolds) {
-        val graph = new GraphSolver(problem)
-        problem.figure.edges.flatMap(edge =>
-          if (graph.tryBreakGraphByRemovingEdge(edge).isDefined) {
+        graph.edgesGoodForFolds.flatMap(edge =>
             List(FoldAroundEdge(edge, true),
               FoldAroundEdge(edge, false))
-          } else {
-            List()
-          }
         )
       } else {
         List()
@@ -181,18 +182,17 @@ class SolutionOptimizer(problem: Problem) {
     val validSols = sols.flatMap(sol =>
       if (validator.validate(sol)) {
         Some(sol)
+      } else if (options.correctByWobbles) {
+        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices, delta = options.wobbleDelta), null)
+        Some(wobbled).filter(validator.validate)
       } else {
-        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices, delta=options.wobbleDelta), null)
-        if (validator.validate(wobbled)) {
-          Some(wobbled)
-        } else {
-          None
-        }
+        None
       }
     )
-    val results = validSols.map(optimizerGoal)
+    import scala.collection.parallel.CollectionConverters._
+    val results = validSols.par.map(s => evaluator.evaluate(s))
     if (results.length >= 1) {
-      val (bestResult, bestIdx) = results.zipWithIndex.minBy(_._1)
+      val (bestResult, bestIdx) = results.zipWithIndex.minBy((p: (BigInt, Int)) => p._1)
       Some((validSols(bestIdx).vertices, bestResult))
     } else {
       println("No actions are available which would make solution valid")
@@ -202,7 +202,7 @@ class SolutionOptimizer(problem: Problem) {
 
   def optimizeEagerly(solution: Vector[Point], options: Options): Vector[Point] = {
     var currentSolution = solution
-    var prevResult = optimizerGoal(Solution(solution, null))
+    var prevResult = evaluator.evaluate(Solution(solution, null))
     var retryNumber = 0
     val maxRetries = 3
     var stop = false
