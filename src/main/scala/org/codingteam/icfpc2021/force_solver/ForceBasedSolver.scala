@@ -1,9 +1,10 @@
 package org.codingteam.icfpc2021.force_solver
 
-import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.{Edge, PointD, Problem, Solution, Point}
+import org.codingteam.icfpc2021.validator.{EdgeCheckResult, SolutionValidator}
+import org.codingteam.icfpc2021.{Edge, Point, PointD, Problem, Solution}
 
 import java.awt.Polygon
+import java.security.PrivilegedExceptionAction
 import scala.collection.mutable
 import scala.util.Random
 
@@ -42,6 +43,23 @@ object ForceBasedSolver {
     }
     )
     (nearest, distance)
+  }
+
+  def groupToSet(group: Vector[(Int,Int,Int)]) : mutable.Set[Int] = {
+    val result = mutable.TreeSet[Int]()
+    for ((i,j,k) <- group) {
+      result += i
+      result += j
+      result += k
+    }
+    result
+  }
+
+  def edgesOfGroup(group: Seq[Int], edges: Seq[Edge]): Seq[Edge] = {
+    for {
+      edge <- edges
+      if (group.contains(edge.vertex1) && group.contains(edge.vertex2))
+    } yield edge
   }
 
   def stepForward(problem: Problem, solution: Solution, steps: Int = 100): Solution = {
@@ -92,6 +110,19 @@ object ForceBasedSolver {
       //for (i <- forces.keys) {
       //  forces(i) -= avgForce
       //}
+
+      for (group <- problem.figure.triangleGroups) {
+        val groupVerts = groupToSet(group)
+        val groupEdges = edgesOfGroup(groupVerts.toSeq, problem.figure.edges)
+        val allEdgesGood = groupEdges.forall(e => validator.checkEdgeLength(solution, e) == EdgeCheckResult.Exact)
+        if (allEdgesGood) {
+          val nForces = groupVerts.size.toDouble
+          val forceSum = groupVerts.map(i => forces(i)).reduce(_+_)
+          for (i <- groupVerts) {
+            forces(i) = forceSum / nForces
+          }
+        }
+      }
 
       vertices = applyForces(vertices, forces)
     }
