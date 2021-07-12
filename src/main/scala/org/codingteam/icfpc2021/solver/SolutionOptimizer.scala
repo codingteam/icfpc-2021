@@ -3,7 +3,7 @@ package org.codingteam.icfpc2021.solver
 import org.codingteam.icfpc2021.validator.SolutionValidator
 import org.codingteam.icfpc2021.evaluator.SolutionEvaluator
 import org.codingteam.icfpc2021.rotation_solver.RotationSolver
-import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
+import org.codingteam.icfpc2021.{Edge, Figure, Point, Problem, Solution}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -35,9 +35,9 @@ case class MirrorOne(vertexIndex: Int) extends Action {
   }
 }
 
-case class FoldAroundEdge(v1: Int, v2: Int, dir: Boolean) extends Action {
+case class FoldAroundEdge(edge: Edge, dir: Boolean) extends Action {
   override def apply(problem: Problem, solution: Vector[Point]) : Vector[Point] = {
-    DumbSolver.foldAroundLine(solution, solution(v1), solution(v2), dir)
+    DumbSolver.unfoldAroundEdge(problem, solution, edge, dir)
   }
 }
 
@@ -140,9 +140,14 @@ class SolutionOptimizer(problem: Problem) {
 
     val folds =
       if (options.useFolds) {
+        val graph = new GraphSolver(problem)
         problem.figure.edges.flatMap(edge =>
-          List(FoldAroundEdge(edge.vertex1, edge.vertex2, true),
-            FoldAroundEdge(edge.vertex1, edge.vertex2, false))
+          if (graph.tryBreakGraphByRemovingEdge(edge).isDefined) {
+            List(FoldAroundEdge(edge, true),
+              FoldAroundEdge(edge, false))
+          } else {
+            List()
+          }
         )
       } else {
         List()
