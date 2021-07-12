@@ -27,7 +27,7 @@ Team Members
 
 - Minoru
 - Akon32
-- ForNeVeR
+- ForNeVeR ([report (in Russian)](https://fornever.me/ru/posts/2021-07-12.icfpc-2021-report.html))
 - portnov
 - pink-snow
 - sergevp
