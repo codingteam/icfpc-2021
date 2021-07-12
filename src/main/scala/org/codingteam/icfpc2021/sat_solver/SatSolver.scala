@@ -121,6 +121,22 @@ class SatSolver(problem: Problem) {
       }
     }
 
+    // If there is an edge between two f-vertices, they can't be both mapped to
+    // the same h-vertex.
+    for (Edge(start, end) <- problem.figure.edges) {
+      // Both a and b can't be true at the same time
+      def never_together(a: Term, b: Term): Expression = Or(Not(a), Not(b))
+
+      for (h <- problem.hole.indices) {
+        // start is mapped to h
+        val a = Term(1 + start*problem.hole.size + h)
+        // end is mapped to h
+        val b = Term(1 + end*problem.hole.size + h)
+
+        logic.and(never_together(a, b))
+      }
+    }
+
     DIMACS.from(logic)
   }
 
