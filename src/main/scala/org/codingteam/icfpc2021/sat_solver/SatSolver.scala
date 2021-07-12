@@ -105,7 +105,7 @@ class SatSolver(problem: Problem) {
         val available = validEdgesFrom(s)
         val require_counter_vertices =
           (for (required <- figureEdgesFrom(f)) yield {
-            val wanted = available.filter(e => equalByEpsilon(e._2, required._2)).map(_._1)
+            val wanted = available.filter(e => equalByEpsilon(required._2, e._2)).map(_._1)
             if (!wanted.isEmpty) {
               // Require that the hole h is used by *someone*
               val terms =
