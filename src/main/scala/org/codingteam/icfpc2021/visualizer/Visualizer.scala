@@ -403,6 +403,8 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     tb.add(makeAction("Mirror Vert", () => foldSelectedIn()))
     tb.add(makeAction("Fold 1", () => foldAroundEdge(true)))
     tb.add(makeAction("Fold 2", () => foldAroundEdge(false)))
+    tb.add(makeAction("Unfold 1", () => unfoldAroundEdge(true)))
+    tb.add(makeAction("Unfold 2", () => unfoldAroundEdge(false)))
     tb.add(makeAction("Mirror Edge", () => mirrorAroundEdge()))
     tb.add(makeAction("Wobble", () => wobbleSelected()))
 
@@ -533,6 +535,17 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
       val p1 = solution(i1)
       val p2 = solution(i2)
       solution = DumbSolver.foldAroundLine(solution, p1, p2, dir)
+      repaint()
+      updateStatus()
+    }
+  }
+
+  private def unfoldAroundEdge(dir: Boolean): Unit = {
+    if (selectionTool.selectedFigureVertices.size == 2) {
+      val i1 = selectionTool.selectedFigureVertices.toIndexedSeq(0)
+      val i2 = selectionTool.selectedFigureVertices.toIndexedSeq(1)
+      val edge = Edge(i1, i2)
+      solution = DumbSolver.unfoldAroundEdge(problem, solution, edge, dir)
       repaint()
       updateStatus()
     }

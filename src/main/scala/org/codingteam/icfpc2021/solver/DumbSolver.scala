@@ -1,7 +1,7 @@
 package org.codingteam.icfpc2021.solver
 
 import org.codingteam.icfpc2021.validator.SolutionValidator
-import org.codingteam.icfpc2021.{Figure, Point, Problem, Solution}
+import org.codingteam.icfpc2021.{Edge, Figure, Point, Problem, Solution}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -101,6 +101,24 @@ object DumbSolver {
         p
       }
     )
+  }
+
+  def unfoldAroundEdge(problem: Problem, solution: Vector[Point], edge: Edge, dir: Boolean): Vector[Point] = {
+    val graph = new GraphSolver(problem)
+    graph.tryBreakGraphByRemovingEdge(edge) match {
+      case None => solution
+      case Some((c1, c2)) => {
+        val p1 = solution(edge.vertex1)
+        val p2 = solution(edge.vertex2)
+        solution.zipWithIndex.map { case (p, i) => {
+          if (c1.contains(i) != dir) {
+            mirror(p, p1, p2)
+          } else {
+            p
+          }
+        }}
+      }
+    }
   }
 
   def calcCenter(solution: Vector[Point]): Point = {
