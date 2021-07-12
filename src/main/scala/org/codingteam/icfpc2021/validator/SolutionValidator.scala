@@ -52,6 +52,56 @@ class SolutionValidator(problem: Problem) {
     (holeImageArray, figureImage, figureImageArray)
   }
 
+  def nearestPointOfHole(p: PointD) : (PointD, Double) = {
+    var distance = None: Option[Double]
+    var nearest = problem.hole(0).toPointD()
+    problem.holeEdges.foreach(e => {
+      val h1 = problem.hole(e.vertex1).toPointD()
+      val h2 = problem.hole(e.vertex2).toPointD()
+      SolutionValidator.projectionToSegment(p, h1, h2) match {
+        case None => {}
+        case Some(proj) => {
+          val newD = (proj - p).abs()
+          distance match {
+            case None => {
+              distance = Some(newD)
+              nearest = proj
+            }
+            case Some(prevD) => {
+              if (newD < prevD) {
+                distance = Some(newD)
+                nearest = proj
+              }
+            }
+          }
+        }
+      }
+    }
+    )
+    distance match {
+      case None => {
+        nearest = problem.hole.minBy(h => (p - h.toPointD()).abs()).toPointD()
+        val d = (p - nearest).abs()
+        (nearest, d)
+      }
+      case Some(d) => (nearest, d)
+    }
+  }
+
+  def nearestPointOfHoleI(p: PointD): (PointD, BigInt) = {
+    val (q, distD) = nearestPointOfHole(p)
+    try {
+      val dist = BigDecimal.valueOf(distD).toBigInt
+      (q, dist)
+    } catch {
+      case ex: NumberFormatException => {
+        println(s"P.$p - Q.$q => $distD")
+      }
+      throw ex
+    }
+
+  }
+
   private def pointToImageCoord(p: Point): Point = {
     Point(((p.x - shiftX).toDouble * scaleX).toInt, ((p.y - shiftY).toDouble * scaleY).toInt)
   }
@@ -71,7 +121,13 @@ class SolutionValidator(problem: Problem) {
 
   def invalidnessMeasure(solution: Solution) : BigInt = {
     val edgeDeltas = problem.figure.edges.map(e => calcEdgeLengthDelta(solution, e)._1.abs).sum
-    val pointsOutside = solution.vertices.count(p => !isPointInHole(p))
+    val pointsOutside = solution.vertices.map(p =>
+      if (isPointInHole(p)) {
+        BigInt(0)
+      } else {
+        nearestPointOfHoleI(p.toPointD())._2
+      }
+    ).sum
     val badEdges = problem.figure.edges.count(e => {
       val p1 = solution.vertices(e.vertex1)
       val p2 = solution.vertices(e.vertex2)
@@ -183,6 +239,19 @@ object SolutionValidator {
       println("Ok")
     } else {
       println("Fail")
+    }
+  }
+
+  def projectionToSegment(p: PointD, p1: PointD, p2: PointD): Option[PointD] = {
+    val dp = p2 - p1
+    val dir = dp.normalized()
+    val dp1 = (p - p1)
+    val projectionLength = dir dot dp1
+    val segmentLength = (p2 - p1).abs()
+    if (projectionLength < 0 || projectionLength > segmentLength) {
+      None
+    } else {
+      Some(p1 + dir * projectionLength)
     }
   }
 }

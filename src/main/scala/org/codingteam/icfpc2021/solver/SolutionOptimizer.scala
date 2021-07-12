@@ -163,9 +163,9 @@ class SolutionOptimizer(problem: Problem) {
     val actions = possibleActions(solution, options)
     val sols = actions.map(a => Solution(a.apply(problem, solution), null))
     val results = sols.map(sol => validator.invalidnessMeasure(sol))
-    actions.zip(results).foreach { case (a, v) =>
-      println(s"A: $a => $v")
-    }
+    //actions.zip(results).foreach { case (a, v) =>
+    //  println(s"A: $a => $v")
+    //}
     val bestIdx = results.zipWithIndex.minBy(_._1)._2
     sols(bestIdx).vertices
   }

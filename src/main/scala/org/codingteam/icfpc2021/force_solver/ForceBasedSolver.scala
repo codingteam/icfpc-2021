@@ -11,40 +11,6 @@ import scala.util.Random
 object ForceBasedSolver {
   val random = new Random()
 
-  def projectionToSegment(p: PointD, p1: PointD, p2: PointD): Option[PointD] = {
-    val dp = p2 - p1
-    val dir = dp.normalized()
-    val dp1 = (p - p1)
-    val projectionLength = dir dot dp1
-    val segmentLength = (p2 - p1).abs()
-    if (projectionLength <= 0 || projectionLength >= segmentLength) {
-      None
-    } else {
-      Some(p1 + dir * projectionLength)
-    }
-  }
-
-  def nearestPointOfHole(problem: Problem, p: PointD) : (PointD, Double) = {
-    var distance = Double.MaxValue
-    var nearest = problem.hole(0).toPointD()
-    problem.holeEdges.foreach(e => {
-      val h1 = problem.hole(e.vertex1).toPointD()
-      val h2 = problem.hole(e.vertex2).toPointD()
-      projectionToSegment(p, h1, h2) match {
-        case None => {}
-        case Some(proj) => {
-          val d = (proj - p).abs()
-          if (d < distance) {
-            distance = d
-            nearest = proj
-          }
-        }
-      }
-    }
-    )
-    (nearest, distance)
-  }
-
   def groupToSet(group: Vector[(Int,Int,Int)]) : mutable.Set[Int] = {
     val result = mutable.TreeSet[Int]()
     for ((i,j,k) <- group) {
@@ -74,7 +40,7 @@ object ForceBasedSolver {
       // Points outside the hole are trying to move inward
       for ((v, i) <- vertices.view.zipWithIndex) {
         if (!validator.isPointInHole(v)) {
-          val nearest = nearestPointOfHole(problem, v)._1
+          val nearest = validator.nearestPointOfHole(v)._1
           //println(s"V.$i: nearest = $nearest")
           forces(i) = (nearest - v) // / 10.0
         }
