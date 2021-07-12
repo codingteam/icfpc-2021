@@ -184,6 +184,12 @@ class Window:
 		srcp = self.problem['figure']['vertices']
 		self.dstp = [(x,y) for x,y in self.dstp] # make a copy, so we could edit it
 
+		# remember which points are connected to which
+		self.G = {}
+		for p1,p2 in self.problem['figure']['edges']:
+			self.G.setdefault(p1,set()).add(p2)
+			self.G.setdefault(p2,set()).add(p1)
+
 		# Remember solution fname so we could save a better solution to it (strip digits at the end)
 		# (strip suffix after ".json" if any)
 		if solution_fname:
@@ -222,6 +228,9 @@ class Window:
 		self.autofillVar = Tk.IntVar(value=0)
 		fillCheck = Tk.Checkbutton(rightFrame, text="Auto-Fill", variable=self.autofillVar, anchor=Tk.W)
 		self.guihint(fillCheck, "Each hole vertext pulls closest figure vertex")
+		self.autoinflateVar = Tk.IntVar(value=0)
+		inflateCheck = Tk.Checkbutton(rightFrame, text="Auto-Inflate", variable=self.autoinflateVar, anchor=Tk.W)
+		self.guihint(inflateCheck, "Try to inflate a compressed figure")
 
 		debugLabel = Tk.Message(rightFrame, text="Debug options:", width=RIGHTWIDTH, anchor=Tk.W)
 		self.unstretchallVar = Tk.IntVar(value=0)
@@ -235,7 +244,10 @@ class Window:
 		self.guihint(localunstretchCheck, "When Auto-Unstretching, unstretch only edges of vertex moved by mouse (VERY UNSTABLE)")
 		self.intunstretchVar = Tk.IntVar(value=0)
 		intunstretchCheck = Tk.Checkbutton(rightFrame, text="Integer unstretch", variable=self.intunstretchVar, anchor=Tk.W)
-		self.guihint(intunstretchCheck, "When auto-unstretching, round coords to integer (VERY UNSTABLE)")
+		self.guihint(intunstretchCheck, "When auto-unstretching, round coords to integer")
+		self.safefillVar = Tk.IntVar(value=0)
+		safefillCheck = Tk.Checkbutton(rightFrame, text="Careful fill", variable=self.safefillVar, anchor=Tk.W)
+		self.guihint(safefillCheck, "Slow Auto-Filling - making sure figure doesn't get out of hole")
 		self.intdragVar = Tk.IntVar(value=1)
 		intdragCheck = Tk.Checkbutton(rightFrame, text="Integer drag", variable=self.intdragVar, anchor=Tk.W)
 		self.guihint(intdragCheck, "Snap mousedragged vertex to integer coords")
@@ -289,11 +301,13 @@ class Window:
 		unstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		stuffCheck.pack(side=Tk.TOP, fill=Tk.X)
 		fillCheck.pack(side=Tk.TOP, fill=Tk.X)
+		inflateCheck.pack(side=Tk.TOP, fill=Tk.X)
 		debugLabel.pack(side=Tk.TOP, fill=Tk.X)
 		unstretchallCheck.pack(side=Tk.TOP, fill=Tk.X)
 		stickyholeCheck.pack(side=Tk.TOP, fill=Tk.X)
 		localunstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
 		intunstretchCheck.pack(side=Tk.TOP, fill=Tk.X)
+		safefillCheck.pack(side=Tk.TOP, fill=Tk.X)
 		intdragCheck.pack(side=Tk.TOP, fill=Tk.X)
 		if self.bonuses:
 			bonusesLabel.pack(side=Tk.TOP, fill=Tk.X)
@@ -577,7 +591,7 @@ class Window:
 			if totaleps > (self.problem['epsilon']+.0000001) * len(self.problem['figure']['edges']):
 				self.unstretch_edge_1step( maxp1,maxp2, maxsrcd,maxdstd, dontmove_list, round_to_int )
 		elif self.intunstretchVar.get(): # special integer unstretch - just one edge
-			initial_unstretchness = self.get_total_unstretchness(self.dstp)
+			#initial_unstretchness = self.get_total_unstretchness(self.dstp)
 			min_unstretchness = None
 			for p1,p2 in self.problem['figure']['edges']:
 				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
@@ -587,14 +601,16 @@ class Window:
 				if e > self.problem['epsilon']+.0000001:
 					x1,y1=self.dstp[p1]
 					x2,y2=self.dstp[p2]
-					for nx1 in (x1-1,x1,x1+1):
-						for ny1 in (y1-1,y1,y1+1):
-							for nx2 in (x2-1,x2,x2+1):
-								for ny2 in (y2-1,y2,y2+1):
-									ndstp=self.dstp[:p1] + [(nx1,ny1)] + self.dstp[p1+1:p2] + [(nx2,ny2)] + self.dstp[p2+1:]
-									cur_unstretchness = self.get_total_unstretchness(ndstp)
+					for nx1 in (x1-1,x1+1,x1):
+						for ny1 in (y1-1,y1+1,y1):
+							for nx2 in (x2-1,x2+1,x2):
+								for ny2 in (y2-1,y2+1,y2):
+									# optimization : edit inplace
+									self.dstp[p1] = (nx1,ny1)
+									self.dstp[p2] = (nx2,ny2)
+									cur_unstretchness = self.get_total_unstretchness(self.dstp)
 									if min_unstretchness is None or min_unstretchness > cur_unstretchness:
-										min_unstretchness, mindstp = cur_unstretchness, ndstp
+										min_unstretchness, mindstp = cur_unstretchness, [(x,y) for x,y in self.dstp] # copy min value
 			if min_unstretchness is not None:
 				self.dstp = mindstp
 		else: # unstrech all the edges
@@ -639,6 +655,59 @@ class Window:
 		for bx,by in self.bonuses:
 			iclosest = self.find_closest_idx(bx,by)
 			self.dstp[iclosest] = move_point( (bx,by), self.dstp[iclosest], FILL_SPEED )
+
+	# Careful fill - reduce dislike, but don't move figure out of the hole
+	def solution_in_hole(self, dstp):
+		for px,py in dstp:
+			if not point_in_hole(self.problem['hole'], (px,py)):
+				return False
+		for p1,p2 in self.problem['figure']['edges']:
+			if not line_in_hole(self.problem['hole'], dstp[p1], dstp[p2]):
+				return False
+		return True
+	def safefill_1step(self):
+		for hx,hy in self.problem['hole']:
+			iclosest = self.find_closest_idx(hx,hy)
+			px,py = self.dstp[iclosest]
+			#dislikes = sum( min( sqdist(hp,p) for p in self.dstp ) for hp in self.problem['hole'] )
+			mindist, minx,miny = sqdist( (hx,hy), (px,py) ), px,py
+			for nx in (px-1,px+1,px):
+				for ny in (py-1,py+1,py):
+					self.dstp[iclosest] = px,py # modify inplace
+					d = sqdist( (hx,hy), (nx,ny) )
+					if mindist > d and self.solution_in_hole(self.dstp):
+						mindist, minx,miny = d, nx,ny
+			self.dstp[iclosest] = minx,miny # save the best
+
+	def inflate_1step(self):
+		dontmove_list = set()
+		if self.stickyholeVar.get():
+			dontmove_list.update( (x,y) for x,y in self.problem['hole'] )
+		if self.bonusstickyVar.get():
+			dontmove_list.update( list(self.bonuses) )
+		# find all quads
+		for p2 in self.G:
+			for p1 in self.G[p2]:
+				if p1 <= p2: continue
+				d12 = sqdist( self.dstp[p1], self.dstp[p2] )
+				for p3 in self.G[p2]:
+					if p3 <= p1: continue
+					if p3 in self.G[p1]: continue # skip rectangles
+					d23 = sqdist( self.dstp[p2], self.dstp[p3] )
+					for p4 in self.G[p1]:
+						if p4 == p2: continue
+						if p4 not in self.G[p3]: continue # not connected
+						d34 = sqdist( self.dstp[p3], self.dstp[p4] )
+						d41 = sqdist( self.dstp[p4], self.dstp[p1] )
+						mind = 1.5*min(d12, d23, d34, d41)
+						d13 = sqdist( self.dstp[p1], self.dstp[p3] )
+						d24 = sqdist( self.dstp[p2], self.dstp[p4] )
+						if d13 < mind:
+							self.unstretch_edge_1step(p1,p3, mind,d13, dontmove_list, False)
+						if d24 < mind:
+							self.unstretch_edge_1step(p2,p4, mind,d24, dontmove_list, False)
+
+		pass # TODO
 
 	def mirror_clicked(self):
 		mx, my = self.scale.getmidpxy()
@@ -686,15 +755,11 @@ class Window:
 
 	def search2_clicked(self):
 		srcp = self.problem['figure']['vertices']
-		G = {}
-		for p1,p2 in self.problem['figure']['edges']:
-			G.setdefault(p1,set()).add(p2)
-			G.setdefault(p2,set()).add(p1)
 		sqlens2 = {}
-		for pm in G:
-			for p1 in G[pm]:
+		for pm in self.G:
+			for p1 in self.G[pm]:
 				d1 = sqdist(srcp[pm],srcp[p1])
-				for p2 in G[pm]:
+				for p2 in self.G[pm]:
 					if p2 <= p1: continue
 					d2 = sqdist(srcp[pm],srcp[p2])
 					sqlens2.setdefault( (d1,d2), [] ).append(pm)
@@ -734,11 +799,11 @@ class Window:
 		data = {"vertices":self.dstp}
 		used_bonuses = []
 		if self.bonusGIDVar.get() != "":
-			used_bonuses.append( {'bonus':"GLOBALIST",'problem':self.bonusGIDVar.get()} )
+			used_bonuses.append( {'bonus':"GLOBALIST",'problem':int(self.bonusGIDVar.get())} )
 		if self.bonusWIDVar.get() != "":
-			used_bonuses.append( {'bonus':"WALLHACK",'problem':self.bonusWIDVar.get()} )
+			used_bonuses.append( {'bonus':"WALLHACK",'problem':int(self.bonusWIDVar.get())} )
 		if self.bonusSIDVar.get() != "":
-			used_bonuses.append( {'bonus':"SUPERFLEX",'problem':self.bonusSIDVar.get()} )
+			used_bonuses.append( {'bonus':"SUPERFLEX",'problem':int(self.bonusSIDVar.get())} )
 		if used_bonuses:
 			data['bonuses'] = used_bonuses
 		f = open( self.outfnameVar.get(), "w" )
@@ -751,9 +816,14 @@ class Window:
 		if self.autostuffVar.get():
 			self.stuff_1step()
 		if self.autofillVar.get():
-			self.fill_1step()
+			if self.safefillVar.get():
+				self.safefill_1step()
+			else:
+				self.fill_1step()
 		if self.bonusattractVar.get() and self.bonuses:
 			self.bonus_fill_1step()
+		if self.autoinflateVar.get():
+			self.inflate_1step()
 		self.update_lines_and_stats()
 		self.root.after(AUTO_PERIOD, self.ontimer)
 
