@@ -184,7 +184,7 @@ class SatSolver(problem: Problem) {
           if (validator.validateEdgeLength(solution)) {
             return Some(solution)
           } else {
-            println("Skipping solution because is has invalid edges: ${solution}")
+            println(s"Skipping solution because is has invalid edges: ${solution}")
           }
 
           val new_clause =
