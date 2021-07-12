@@ -1,6 +1,7 @@
 package org.codingteam.icfpc2021.sat_solver
 
 import org.codingteam.icfpc2021._
+import org.codingteam.icfpc2021.validator.SolutionValidator
 
 import java.nio.file.{Files, Path, StandardOpenOption}
 import scala.collection.mutable.{Buffer, HashMap}
@@ -66,7 +67,7 @@ class SatSolver(problem: Problem) {
     }).toVector
   }
 
-  private def prepareDIMACS(): String = {
+  private def prepareLogic(): BooleanLogic = {
     val logic = BooleanLogic()
 
     // Each of the figure's vertices should correspond to exactly one of the
@@ -137,10 +138,10 @@ class SatSolver(problem: Problem) {
       }
     }
 
-    DIMACS.from(logic)
+    logic
   }
 
-  private def runMinisat(dimacs: String): Option[String] = {
+  private def runMinisat(dimacs: String): Option[Vector[Int]] = {
     import scala.sys.process._
 
     val inputFile: Path = Files.createTempFile("icfpc2021-satsolver-in-", ".sat")
@@ -151,7 +152,7 @@ class SatSolver(problem: Problem) {
       val exit_code = Seq("minisat", inputFile.toString, outputFile.toString).!
       if (exit_code == 10) {
         // the problem was satisfied
-        return Some(Files.readString(outputFile))
+        return Some(Files.readString(outputFile).split("\n")(1).split(" ").map(_.toInt).filter(_ > 0).toVector)
       }
     } finally {
       Files.delete(inputFile)
@@ -161,17 +162,41 @@ class SatSolver(problem: Problem) {
     None
   }
 
-  private def resultToSolution(result: String): Solution = {
-    val truthy_variables = result.split("\n")(1).split(" ").map(_.toInt).filter(_ > 0).toSeq
+  private def resultToSolution(result: Vector[Int]): Solution = {
     val H = problem.hole.size
-    val mappings = truthy_variables.map(x => ((x-1)/H, (x-1)%H))
+    val mappings = result.map(x => ((x-1)/H, (x-1)%H))
     val vertices = mappings.sortBy(_._1).map(m => problem.hole(m._2)).toVector
     val bonuses = Vector()
     Solution(vertices, bonuses)
   }
 
   def solve(): Option[Solution] = {
-    runMinisat(prepareDIMACS()).map(resultToSolution)
+    val validator = new SolutionValidator(problem)
+
+    val logic = prepareLogic()
+
+    var sat_solution = runMinisat(DIMACS.from(logic))
+    while (true) {
+      sat_solution match {
+        case None => return None
+        case Some(variables) => {
+          val solution = resultToSolution(variables)
+          if (validator.validateEdgeLength(solution)) {
+            return Some(solution)
+          } else {
+            println("Skipping solution because is has invalid edges: ${solution}")
+          }
+
+          val new_clause =
+            variables.map(x => if (x < 0) { Term(-x) } else { Not(Term(x)) }).fold(AlwaysFalse)(Or(_, _))
+          logic.and(new_clause)
+
+          sat_solution = runMinisat(DIMACS.from(logic))
+        }
+      }
+    }
+
+    None
   }
 }
 
