@@ -16,6 +16,10 @@ We have also tried to use a [self-organizing map](https://en.wikipedia.org/wiki/
 
 Last but not least, we applied a bit of smarts and simple brute-force optimizations to the results of automatic algorithms.
 
+Python UI | Scala UI
+-|-
+<img src=screenshots/guipy.png height=200px> | <img src=screenshots/visualizer.png height=200px>
+
 Team Members
 ------------
 
