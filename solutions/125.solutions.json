@@ -1,4 +1,12 @@
 [ {
+  "id" : "414cc530-4126-43cf-af1a-cf3d0af32609",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "Edge between (50,61) has an invalid length: original: 457, pose: 421, max epsilon: 70632",
+    "awarded_bonuses" : null
+  }
+}, {
   "id" : "419dabbd-5b22-411d-b516-21a5ba45b271",
   "solution" : {
     "state" : "VALID",
