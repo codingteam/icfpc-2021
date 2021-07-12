@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.math.{Pi, abs, sqrt}
 import scala.util.Random
 
-case class Options(nIterations: Int, useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, translationDelta: Int = 10)
+case class Options(nIterations: Int, useRotations : Boolean, useTranslations: Boolean, useFolds: Boolean, wobbleDelta: Int = 5, translationDelta: Int = 10)
 
 sealed abstract class Action() {
   def apply(problem: Problem, solution: Vector[Point]) : Vector[Point]
@@ -104,7 +104,7 @@ class SolutionOptimizer(problem: Problem) {
     val n = solution.length
     val figure = Figure(problem.figure.edges, solution)
     val idxs = 0 to (n-1)
-    val wobbles = idxs.map(i => Wobble(i, delta=5)) : Seq[Action]
+    val wobbles = idxs.map(i => Wobble(i, delta=options.wobbleDelta)) : Seq[Action]
     val mirrors = idxs.flatMap(i => {
         val neighbours = figure.vertexNeighbours(i)
         if (neighbours.length == 2) {
@@ -177,7 +177,7 @@ class SolutionOptimizer(problem: Problem) {
       if (validator.validate(sol)) {
         Some(sol)
       } else {
-        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices, delta=5), null)
+        val wobbled = Solution(DumbSolver.wobbleAll(validator, random, sol.vertices, delta=options.wobbleDelta), null)
         if (validator.validate(wobbled)) {
           Some(wobbled)
         } else {
