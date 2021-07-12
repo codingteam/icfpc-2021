@@ -1,10 +1,10 @@
 [ {
   "id" : "4dda9645-5dc7-4a2a-911c-0b0a42cc0314",
   "solution" : {
-    "state" : "PENDING",
-    "dislikes" : null,
+    "state" : "VALID",
+    "dislikes" : 0,
     "error" : null,
-    "awarded_bonuses" : null
+    "awarded_bonuses" : [ ]
   }
 }, {
   "id" : "c3810a17-9c32-4ebc-8c34-0f29f075b157",

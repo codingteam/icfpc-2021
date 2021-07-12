@@ -1,9 +1,9 @@
 [ {
   "id" : "2f0da047-fffc-4529-a4fa-bc696fc29ebb",
   "solution" : {
-    "state" : "PENDING",
-    "dislikes" : null,
+    "state" : "VALID",
+    "dislikes" : 15353,
     "error" : null,
-    "awarded_bonuses" : null
+    "awarded_bonuses" : [ ]
   }
 } ]
