@@ -1,0 +1,17 @@
+[ {
+  "id" : "9ac7eee6-0c17-42e0-a1fd-19bfd79b7a70",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 189451,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
+  "id" : "5c186c90-74f2-4820-a686-14c72a7dae04",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 200733,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+} ]

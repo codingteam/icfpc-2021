@@ -2,12 +2,15 @@ package org.codingteam.icfpc2021.submitter
 
 import org.jsoup.Jsoup
 
+import java.net.http.HttpClient
 import java.nio.file.{Files, Path}
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object Dumper {
   val problemCount = 132
   def dump(sessionId: String, apiKey: String, directory: Path): Unit = {
+    val filesToRemove = ListBuffer[String]()
     val client = Submitter.httpClient()
     for (problemId <- 1.to(problemCount)) {
       println(s"Working on problem $problemId.")
@@ -28,9 +31,55 @@ object Dumper {
       val path = directory.resolve(s"$problemId.solutions.json")
       if (data.length > 0) {
         Files.writeString(path, results)
+        dumpTopResult(client, sessionId, problemId, data, directory, filesToRemove)
       }
       else
         Files.deleteIfExists(path)
+    }
+
+    if (filesToRemove.nonEmpty) {
+      println("Please remove the following outdated files:")
+      for (file <- filesToRemove) {
+        println(s"  $file")
+      }
+    }
+  }
+
+  def dumpTopResult(client: HttpClient, sessionId: String, problemId: Int, solutions: Array[DumperSolution], directory: Path, filesToRemove: ListBuffer[String]): Unit = {
+    val result = solutions.head
+    if (result.solution.dislikes == null) {
+      println("  Top result is not valid, skipping.")
+      val stream = Files.newDirectoryStream(directory, s"$problemId.json*")
+      try {
+        stream.forEach(path => {
+          filesToRemove.addOne(path.toString)
+        })
+      } finally {
+        stream.close()
+      }
+      return
+    }
+
+    var fileName = s"$problemId.json.${result.solution.dislikes}"
+    if (result.solution.awardedBonuses.nonEmpty) {
+      fileName += result.solution.awardedBonuses
+        .sortBy(_.problem)
+        .map(bonus => s"${bonus.bonus.charAt(0)}${bonus.problem}").mkString("-", "-", "")
+    }
+
+    println(s"  Downloading solution ${result.id}.")
+    val solutionContent = Submitter.downloadSolution(client, sessionId, result.id)
+    Files.writeString(directory.resolve(fileName), solutionContent)
+
+    val stream = Files.newDirectoryStream(directory, s"$problemId.json*")
+    try {
+      stream.forEach(path => {
+        if (path.getFileName.toString != fileName) {
+          filesToRemove.addOne(path.toString)
+        }
+      })
+    } finally {
+      stream.close()
     }
   }
 

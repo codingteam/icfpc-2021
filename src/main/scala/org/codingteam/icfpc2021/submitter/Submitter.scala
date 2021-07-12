@@ -44,6 +44,14 @@ object Submitter {
     SubmitterJson.readSolution(client.send(request, BodyHandlers.ofString()).body())
   }
 
+  def downloadSolution(client: HttpClient, sessionId: String, solutionId: String): String = {
+    val request = HttpRequest.newBuilder()
+      .uri(URI.create(s"$apiAddress/solutions/$solutionId/download?"))
+      .header("cookie", s"session=$sessionId")
+      .build()
+    client.send(request, BodyHandlers.ofString()).body()
+  }
+
   def dislikesOfLastSolution(solutionsDir: Path, problemId: String): BigInt = {
     val problemJsonFile = solutionsDir.resolve(s"$problemId.solutions.json")
     if (!Files.exists(problemJsonFile)) {
