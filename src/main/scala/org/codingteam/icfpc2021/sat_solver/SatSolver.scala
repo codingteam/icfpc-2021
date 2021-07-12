@@ -145,10 +145,17 @@ class SatSolver(problem: Problem) {
     None
   }
 
+  private def resultToSolution(result: String): Solution = {
+    val truthy_variables = result.split("\n")(1).split(" ").map(_.toInt).filter(_ > 0).toSeq
+    val H = problem.hole.size
+    val mappings = truthy_variables.map(x => ((x-1)/H, (x-1)%H))
+    val vertices = mappings.sortBy(_._1).map(m => problem.hole(m._2)).toVector
+    val bonuses = Vector()
+    Solution(vertices, bonuses)
+  }
+
   def solve(): Option[Solution] = {
-    val dimacs = prepareDIMACS()
-    val sat_solution = runMinisat(dimacs)
-    None
+    runMinisat(prepareDIMACS()).map(resultToSolution)
   }
 }
 
