@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object Dumper {
-  val problemCount = 106
+  val problemCount = 132
   def dump(sessionId: String, apiKey: String, directory: Path): Unit = {
     val client = Submitter.httpClient()
     for (problemId <- 1.to(problemCount)) {
