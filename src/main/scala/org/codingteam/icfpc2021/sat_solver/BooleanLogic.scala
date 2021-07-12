@@ -108,10 +108,6 @@ case class Or(lhs: Expression, rhs: Expression) extends Expression {
           Or(Not(a), b)
         }
 
-      // distributivity law
-      case (a, And(x, y)) => And(Or(a, x).toCNF(), Or(a, y).toCNF()).toCNF()
-      case (And(x, y), a)  => And(Or(a, x).toCNF(), Or(a, y).toCNF()).toCNF()
-
       case (a, b) =>
         if (a == b) {
           a
@@ -169,7 +165,35 @@ case class BooleanLogic() {
         case e => And(e, expr)
       }
 
+  private def applyDistributivityLaw(e: Expression): Expression =
+    e match {
+      case Or(AlwaysTrue, a) => AlwaysTrue
+      case Or(a, AlwaysTrue) => AlwaysTrue
+      case Or(AlwaysFalse, a) => applyDistributivityLaw(a)
+      case Or(a, AlwaysFalse) => applyDistributivityLaw(a)
+      case And(AlwaysFalse, a) => AlwaysFalse
+      case And(a, AlwaysFalse) => AlwaysFalse
+      case And(AlwaysTrue, a) => applyDistributivityLaw(a)
+      case And(a, AlwaysTrue) => applyDistributivityLaw(a)
+
+      // distributivity law
+      case Or(a, And(x, y)) => And(Or(a, x), Or(a, y))
+      case Or(And(x, y), a)  => And(Or(a, x), Or(a, y))
+      case Or(a, b) => Or(applyDistributivityLaw(a), applyDistributivityLaw(b))
+      case And(a, b) => And(applyDistributivityLaw(a), applyDistributivityLaw(b))
+      case Not(a) => Not(applyDistributivityLaw(a))
+      case AlwaysTrue => AlwaysTrue
+      case AlwaysFalse => AlwaysFalse
+      case Term(n) => Term(n)
+    }
+
   def toCNF(): Expression = {
-    expression.toCNF()
+    var previous = expression.toCNF()
+    var current = applyDistributivityLaw(previous)
+    while (previous != current) {
+      previous = current
+      current = applyDistributivityLaw(previous)
+    }
+    current
   }
 }

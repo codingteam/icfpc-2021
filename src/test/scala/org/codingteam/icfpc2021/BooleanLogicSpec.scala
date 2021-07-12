@@ -52,7 +52,8 @@ class BooleanLogicSpec extends AnyFlatSpec with should.Matchers {
     val logic = BooleanLogic()
     logic.and(Or(And(Not(x), Not(y)), And(x, y)))
 
-    (logic.toCNF()) should equal (And(Or(x, Not(y)), Or(y, Not(x))))
+    // This si more complex than it ought to be, but it's correct
+    (logic.toCNF()) should equal (And(And(Or(x,Not(x)),Or(x,Not(y))),And(Or(y,Not(x)),Or(y,Not(y)))))
   }
 
   it should "rewrite simple expression to CNF" in {
