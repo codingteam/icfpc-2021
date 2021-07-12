@@ -40,8 +40,9 @@ class SatSolver(problem: Problem) {
   }
 
   private def equalByEpsilon(expected: BigInt, actual: BigInt): Boolean = {
-    val gcd = actual.gcd(expected)
-    abs((actual/gcd).toDouble / (expected/gcd).toDouble - 1) <= (problem.epsilon.toDouble / 1e6)
+    val delta = actual - expected
+    val isEqual = delta.abs * BigInt(1000000) <= expected * problem.epsilon
+    isEqual
   }
 
   // For each of the figure's vertices, we get a vector of hole's vertex
@@ -55,7 +56,7 @@ class SatSolver(problem: Problem) {
         val available = validEdgesFrom(h)
         val has_it_all =
           (for (r <- required) yield {
-            available.find(e => equalByEpsilon(e._2, r._2)).isDefined
+            available.find(e => equalByEpsilon(r._2, e._2)).isDefined
           }).fold(true)(_ && _)
         if (has_it_all) {
           result += h
