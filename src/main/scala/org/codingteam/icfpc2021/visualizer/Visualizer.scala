@@ -343,6 +343,12 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
     p
   }
 
+  private def resetSolution(): Unit = {
+    solution = problem.figure.vertices
+    repaint()
+    updateStatus()
+  }
+
   private def moveToNextProblem(dir: Int): Unit = {
     val problemDir = problemFile.getParent
     val currentFileName = problemFile.getFileName.toString
@@ -357,6 +363,7 @@ class Visualizer(var problemFile: Path, var problem: Problem) extends JFrame("Co
 
   private lazy val buttonsPanel = {
     val tb = new JToolBar()
+    tb.add(makeAction("Reset!", () => resetSolution()))
     tb.add(makeAction("Prev file", () => moveToNextProblem(-1)))
     tb.add(makeAction("Next file", () => moveToNextProblem(1)))
 
