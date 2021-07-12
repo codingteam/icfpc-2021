@@ -1,4 +1,28 @@
 [ {
+  "id" : "4dda9645-5dc7-4a2a-911c-0b0a42cc0314",
+  "solution" : {
+    "state" : "PENDING",
+    "dislikes" : null,
+    "error" : null,
+    "awarded_bonuses" : null
+  }
+}, {
+  "id" : "c3810a17-9c32-4ebc-8c34-0f29f075b157",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "parsing Int failed, expected Number, but encountered String",
+    "awarded_bonuses" : null
+  }
+}, {
+  "id" : "e90a8f09-46d4-4c81-9378-6bd6108f5f71",
+  "solution" : {
+    "state" : "VALID",
+    "dislikes" : 94127,
+    "error" : null,
+    "awarded_bonuses" : [ ]
+  }
+}, {
   "id" : "414cc530-4126-43cf-af1a-cf3d0af32609",
   "solution" : {
     "state" : "INVALID",

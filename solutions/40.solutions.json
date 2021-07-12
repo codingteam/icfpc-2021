@@ -1,4 +1,12 @@
 [ {
+  "id" : "553a4abc-d65b-444b-9b1a-2a41ba2d0b44",
+  "solution" : {
+    "state" : "INVALID",
+    "dislikes" : null,
+    "error" : "parsing Int failed, expected Number, but encountered String",
+    "awarded_bonuses" : null
+  }
+}, {
   "id" : "5d946c19-dda2-4976-9701-7be325c6b871",
   "solution" : {
     "state" : "VALID",
