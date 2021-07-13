@@ -274,9 +274,9 @@ class Window:
 		spreadButton = Tk.Button(rightFrame, text="Spread", command=self.spread_clicked)
 		self.guihint(spreadButton, "Spread all points (only useful with Auto-Unstretch)")
 		search1Button = Tk.Button(rightFrame, text="Search1", command=self.search1_clicked)
-		self.guihint(search1Button, "Find figure edges with length same as hole edge (almost useless)")
-		search2Button = Tk.Button(rightFrame, text="Search2", command=self.search2_clicked)
-		self.guihint(search2Button, "Find figure vertexes with edges matching hole edges (almost useless)")
+		self.guihint(search1Button, "Find figure edge with same length as a hole edge (almost useless)")
+		search2Button = Tk.Button(rightFrame, text="Search2x", command=self.search2x_clicked)
+		self.guihint(search2Button, "Find figure edge chain matching hole edges (works sometimes!)")
 		roundButton = Tk.Button(rightFrame, text="Round to int", command=self.round_clicked)
 		self.guihint(roundButton, "Round all floating point coords to closest integer value")
 		self.outfnameVar = Tk.StringVar()
@@ -334,7 +334,7 @@ class Window:
 			    .pack(side=Tk.BOTTOM, fill=Tk.X)
 		Tk.Message(rightFrame, text="Known bonuses:", width=RIGHTWIDTH, anchor=Tk.W).pack(side=Tk.BOTTOM, fill=Tk.X)
 
-		self.canvas.bind("<Motion>", lambda ev: self.status.configure( text="(%d,%d)" % self.scale.getpxy(ev.x,ev.y) ))
+		self.canvas.bind("<Motion>", lambda ev: self.show_info(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<Button-1>", lambda ev: self.b1down(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<B1-Motion>", lambda ev: self.b1move(*self.scale.getpxy(ev.x,ev.y)))
 		self.canvas.bind("<ButtonRelease-1>", lambda ev: self.b1up(*self.scale.getpxy(ev.x,ev.y)))
@@ -358,6 +358,19 @@ class Window:
 	def guihint(self, guielem, text):
 		guielem.bind("<Enter>", lambda ev: self.status.configure(text=text) )
 		guielem.bind("<Leave>", lambda ev: self.status.configure(text="") )
+
+	def show_info(self, px,py):
+		px,py = int(px+.5),int(py+.5)
+		text = "(%d,%d)" % (px,py)
+		# check if we have hole verticies here
+		for i in xrange( len(self.problem['hole']) ):
+			if self.problem['hole'][i] == [px,py]:
+				text += ", hole idx %d" % i
+		# check if there're figure verticies
+		for i in xrange( len(self.dstp) ):
+			if [int(v) for v in self.dstp[i]] == [px,py]:
+				text += ", p%d" % i
+		self.status['text'] = text
 
 	def redraw_initial_canvas(self):
 		self.canvas.delete("all")
@@ -478,6 +491,8 @@ class Window:
 			if self.bonusSIDVar.get() != "": bonusstr += "S" + self.bonusSIDVar.get()
 
 			suffix = self.last_dislikes_str
+			if any( isinstance(x,float) or isinstance(y,float) for x,y in self.dstp ):
+				suffix += "f"
 			if bonusstr:
 				suffix = bonusstr + "=" + suffix
 			if collected:
@@ -510,6 +525,7 @@ class Window:
 				self.scale.zoommove(sx-prevsx,sy-prevsy)
 				self.redraw_initial_canvas()
 			self.zoommove = sx,sy
+		self.show_info(px,py)
 	def b1up(self, px, py):
 		self.dragidx = None
 
@@ -595,22 +611,21 @@ class Window:
 			min_unstretchness = None
 			for p1,p2 in self.problem['figure']['edges']:
 				if self.localunstretchVar.get() and self.dragidx not in (p1,p2): continue
-				if p1>p2: p1,p2=p2,p1
 				srcd, dstd = sqdist(srcp[p1],srcp[p2]), sqdist(self.dstp[p1],self.dstp[p2])
 				e = 1000000*abs(dstd*1.0/srcd - 1)
 				if e > self.problem['epsilon']+.0000001:
 					x1,y1=self.dstp[p1]
 					x2,y2=self.dstp[p2]
-					for nx1 in (x1-1,x1+1,x1):
-						for ny1 in (y1-1,y1+1,y1):
-							for nx2 in (x2-1,x2+1,x2):
-								for ny2 in (y2-1,y2+1,y2):
-									# optimization : edit inplace
-									self.dstp[p1] = (nx1,ny1)
-									self.dstp[p2] = (nx2,ny2)
-									cur_unstretchness = self.get_total_unstretchness(self.dstp)
-									if min_unstretchness is None or min_unstretchness > cur_unstretchness:
-										min_unstretchness, mindstp = cur_unstretchness, [(x,y) for x,y in self.dstp] # copy min value
+					n1list = [(x1,y1)] if (x1,y1) in dontmove_list else [(x,y) for x in (x1-1,x1+1,x1) for y in (y1-1,y1+1,y1)]
+					n2list = [(x2,y2)] if (x2,y2) in dontmove_list else [(x,y) for x in (x2-1,x2+1,x2) for y in (y2-1,y2+1,y2)]
+					for nx1,ny1 in n1list:
+						for nx2,ny2 in n2list:
+							# optimization : edit inplace
+							self.dstp[p1] = (nx1,ny1)
+							self.dstp[p2] = (nx2,ny2)
+							cur_unstretchness = self.get_total_unstretchness(self.dstp)
+							if min_unstretchness is None or min_unstretchness > cur_unstretchness:
+								min_unstretchness, mindstp = cur_unstretchness, [(x,y) for x,y in self.dstp] # copy min value
 			if min_unstretchness is not None:
 				self.dstp = mindstp
 		else: # unstrech all the edges
@@ -679,6 +694,28 @@ class Window:
 						mindist, minx,miny = d, nx,ny
 			self.dstp[iclosest] = minx,miny # save the best
 
+	# inflate quads and pentagons
+	def find_nlines(self, n, prev, cur, end):
+		if n == 1:
+			if cur in self.G[end]:
+				yield [cur]
+		else:
+			for next in self.G[cur]:
+				if next == prev: continue # don't go back
+				if next <= end: continue # count each ngon only once (well, twice: back and forward)
+				if cur!=end and n>2 and next in self.G[end]: continue # end-diagonal
+				for result in self.find_nlines(n-1, cur, next, end):
+					# check for diagonals
+					if any( pi in self.G[cur] for pi in result[1:-1] ): continue
+					if cur!=end and n>2 and result[-1] in self.G[cur]: continue # end-diagonal
+					yield [cur] + result
+	def inflate_ngon(self, ngon, dontmove_list):
+		mind = 1.5*min( sqdist(self.dstp[p1],self.dstp[p2]) for p1,p2 in zip(ngon,ngon[1:]+ngon[:1]) )
+		for p1,p2 in zip(ngon,ngon[2:]):
+			d = sqdist(self.dstp[p1],self.dstp[p2])
+			if d < 0.1: d = 0.1 # avoid zero divisio
+			if d < mind:
+				self.unstretch_edge_1step(p1,p2, mind,d, dontmove_list, False)
 	def inflate_1step(self):
 		dontmove_list = set()
 		if self.stickyholeVar.get():
@@ -686,28 +723,11 @@ class Window:
 		if self.bonusstickyVar.get():
 			dontmove_list.update( list(self.bonuses) )
 		# find all quads
-		for p2 in self.G:
-			for p1 in self.G[p2]:
-				if p1 <= p2: continue
-				d12 = sqdist( self.dstp[p1], self.dstp[p2] )
-				for p3 in self.G[p2]:
-					if p3 <= p1: continue
-					if p3 in self.G[p1]: continue # skip rectangles
-					d23 = sqdist( self.dstp[p2], self.dstp[p3] )
-					for p4 in self.G[p1]:
-						if p4 == p2: continue
-						if p4 not in self.G[p3]: continue # not connected
-						d34 = sqdist( self.dstp[p3], self.dstp[p4] )
-						d41 = sqdist( self.dstp[p4], self.dstp[p1] )
-						mind = 1.5*min(d12, d23, d34, d41)
-						d13 = sqdist( self.dstp[p1], self.dstp[p3] )
-						d24 = sqdist( self.dstp[p2], self.dstp[p4] )
-						if d13 < mind:
-							self.unstretch_edge_1step(p1,p3, mind,d13, dontmove_list, False)
-						if d24 < mind:
-							self.unstretch_edge_1step(p2,p4, mind,d24, dontmove_list, False)
-
-		pass # TODO
+		for istart in xrange(len(self.dstp)):
+			for ngon in self.find_nlines(4,-1,istart,istart):
+				self.inflate_ngon(ngon, dontmove_list)
+			for ngon in self.find_nlines(5,-1,istart,istart):
+				self.inflate_ngon(ngon, dontmove_list)
 
 	def mirror_clicked(self):
 		mx, my = self.scale.getmidpxy()
@@ -753,38 +773,51 @@ class Window:
 				self.dstp[p2] = px2-mx+tgtx, py2-my+tgty
 			hx1,hy1=hx2,hy2
 
-	def search2_clicked(self):
+	def search2dfs(self, sqlenlist, start, seen):
 		srcp = self.problem['figure']['vertices']
-		sqlens2 = {}
-		for pm in self.G:
-			for p1 in self.G[pm]:
-				d1 = sqdist(srcp[pm],srcp[p1])
-				for p2 in self.G[pm]:
-					if p2 <= p1: continue
-					d2 = sqdist(srcp[pm],srcp[p2])
-					sqlens2.setdefault( (d1,d2), [] ).append(pm)
-
-		hx0,hy0 = self.problem['hole'][-2]
-		hx1,hy1 = self.problem['hole'][-1]
-		d1 = sqdist( (hx0,hy0), (hx1,hy1) )
-		ddelta1 = int((d1*self.problem['epsilon']+1)/1000000)
-		mind1, maxd1 = d1-ddelta1, d1+ddelta1
-		for hx2,hy2 in self.problem['hole']:
-			d2 = sqdist( (hx1,hy1), (hx2,hy2) )
-			ddelta2 = int((d2*self.problem['epsilon']+1)/1000000)
-			mind2, maxd2 = d2-ddelta2, d2+ddelta2
-			candidates = []
-			for td1 in xrange(mind1,maxd1+1):
-				for td2 in xrange(mind2,maxd2+1):
-					if (td1,td2) in sqlens2:
-						candidates.extend( sqlens2[td1,td2] )
-					if (td2,td1) in sqlens2:
-						candidates.extend( sqlens2[td2,td1] )
-			#print("%d,%d : %d candidates" % (hx1,hy1,len(candidates)) ) # DEBUG
-			if len(candidates) == 1:
-				print("Search2: Found candidate for %d,%d" % (hx1,hy1)) # DEBUG
-				self.dstp[ candidates[0] ] = hx1,hy1
-			hx1,hy1,mind1,maxd1=hx2,hy2,mind2,maxd2
+		if not sqlenlist: return []
+		longest = []
+		for i in self.G[start]:
+			if i in seen: continue
+			srcd = sqdist(srcp[start],srcp[i])
+			if 1000000*abs(sqlenlist[0]*1.0/srcd - 1) <= self.problem['epsilon']+.0000001:
+				cur = self.search2dfs(sqlenlist[1:], i, seen+[i])
+				if len(longest) < len(cur):
+					longest = cur
+		return [start] + longest
+	def search2x_clicked(self):
+		holepts = self.problem['hole']
+		sqlenlist = [ sqdist(hp1,hp2) for hp1,hp2 in zip( holepts, holepts[1:]+holepts[:1] ) ]
+		candidates = {}
+		for hstart in xrange( len(holepts) ): # start from every hole vertex
+			curlist = sqlenlist[hstart:] + sqlenlist[:hstart] # rotate the list
+			longest = []
+			for pstart in xrange( len( self.dstp ) ):
+				cur = self.search2dfs(curlist, pstart, [pstart])
+				if len(longest) < len(cur) and len(cur) >= 4:
+					print( "Candidates %s starting at %d %s" % (cur,hstart,holepts[hstart]) )
+					longest = cur
+			if longest:
+				candidates[hstart] = longest
+		while candidates:
+			maxn, maxhi = None, None
+			for hi in candidates:
+				if maxn is None or maxn < len(candidates[hi]):
+					maxn, maxhi = len(candidates[hi]), hi
+			# apply coords
+			print("Applying %s starting from %d" % (candidates[maxhi],maxhi))
+			hi = maxhi
+			for pi in candidates[maxhi]:
+				self.dstp[pi] = holepts[hi]
+				hi = (hi+1) % len(holepts)
+			# remove used figure points
+			used = candidates[maxhi]
+			for pi in used:
+				toremove = [ hi for hi in candidates if pi in candidates[hi] ]
+				[candidates.pop(hi,None) for hi in toremove]
+			# remove used hole points from candidates
+			for hi in xrange(maxhi, maxhi+maxn):
+				candidates.pop(hi,None)
 
 	# Round all coords to integer
 	def round_clicked(self):
