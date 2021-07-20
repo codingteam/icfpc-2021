@@ -25,7 +25,7 @@ Team Members
 
 (in no particular order):
 
-- Minoru
+- Minoru ([report (in Russian)](https://blog.debiania.in.ua/posts/2021-07-17-icfpc-2021.html))
 - Akon32
 - ForNeVeR ([report (in Russian)](https://fornever.me/ru/posts/2021-07-12.icfpc-2021-report.html))
 - portnov
